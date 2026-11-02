@@ -1,0 +1,63 @@
+{
+  "info": {
+    "name": "Restoran API",
+    "description": "CRUD menu dan pesanan menggunakan PostgreSQL",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://127.0.0.1:8080" },
+    { "key": "accessToken", "value": "" },
+    { "key": "username", "value": "yofan" },
+    { "key": "password", "value": "contoh-password-123" },
+    { "key": "userId", "value": "1" },
+    { "key": "menuId", "value": "1" },
+    { "key": "orderId", "value": "1" },
+    { "key": "paymentId", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Autentikasi",
+      "item": [
+        { "name": "Register", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}" }, "url": "{{baseUrl}}/api/auth/register" } },
+        { "name": "Login", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}" }, "url": "{{baseUrl}}/api/auth/login" }, "event": [{ "listen": "test", "script": { "exec": ["const body = pm.response.json();", "if (pm.response.code === 200 && body.access_token) {", "  pm.collectionVariables.set('accessToken', body.access_token);", "}", ""], "type": "text/javascript" } }] },
+        { "name": "Me", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] }, "method": "GET", "url": "{{baseUrl}}/api/auth/me" } },
+        { "name": "Ubah role pengguna (admin)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] }, "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"role\": \"kasir\"\n}" }, "url": "{{baseUrl}}/api/auth/users/{{userId}}/role" } },
+        { "name": "Logout", "request": { "method": "POST", "url": "{{baseUrl}}/api/auth/logout" }, "event": [{ "listen": "test", "script": { "exec": ["pm.collectionVariables.unset('accessToken');"], "type": "text/javascript" } }] }
+      ]
+    },
+    {
+      "name": "Menu",
+      "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+      "item": [
+        { "name": "Lihat semua menu", "request": { "method": "GET", "url": "{{baseUrl}}/api/menus" } },
+        { "name": "Lihat menu berdasarkan ID", "request": { "method": "GET", "url": "{{baseUrl}}/api/menus/{{menuId}}" } },
+        { "name": "Tambah menu", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Nasi Goreng\",\n  \"price\": 25000,\n  \"category\": \"Makanan\",\n  \"stock\": 20\n}" }, "url": "{{baseUrl}}/api/menus" } },
+        { "name": "Ubah menu", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Nasi Goreng Spesial\",\n  \"price\": 30000,\n  \"category\": \"Makanan\",\n  \"stock\": 20\n}" }, "url": "{{baseUrl}}/api/menus/{{menuId}}" } },
+        { "name": "Ubah sebagian field menu", "request": { "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Nasi Goreng Spesial\",\n  \"stock\": 18\n}" }, "url": "{{baseUrl}}/api/menus/{{menuId}}" } },
+        { "name": "Hapus menu", "request": { "method": "DELETE", "url": "{{baseUrl}}/api/menus/{{menuId}}" } }
+      ]
+    },
+    {
+      "name": "Pesanan",
+      "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+      "item": [
+        { "name": "Lihat semua pesanan", "request": { "method": "GET", "url": "{{baseUrl}}/api/orders" } },
+        { "name": "Lihat pesanan berdasarkan ID", "request": { "method": "GET", "url": "{{baseUrl}}/api/orders/{{orderId}}" } },
+        { "name": "Beli menu", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"customer_name\": \"Budi\",\n  \"menu_id\": {{menuId}},\n  \"quantity\": 2\n}" }, "url": "{{baseUrl}}/api/orders" }, "event": [{ "listen": "test", "script": { "exec": ["const body = pm.response.json();", "if (pm.response.code === 201 && body.id) {", "  pm.collectionVariables.set('orderId', String(body.id));", "}"], "type": "text/javascript" } }] },
+        { "name": "Minta pembayaran", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"method\": \"bank_transfer\"\n}" }, "url": "{{baseUrl}}/api/orders/{{orderId}}/payment" }, "event": [{ "listen": "test", "script": { "exec": ["const body = pm.response.json();", "if (pm.response.code === 201 && body.payment_id) {", "  pm.collectionVariables.set('paymentId', String(body.payment_id));", "}"], "type": "text/javascript" } }] },
+        { "name": "Lihat struk", "request": { "method": "GET", "url": "{{baseUrl}}/api/orders/{{orderId}}/receipt" } },
+        { "name": "Ubah pesanan", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"customer_name\": \"Budi\",\n  \"item_name\": \"Nasi Goreng Spesial\",\n  \"quantity\": 3,\n  \"status\": \"diproses\"\n}" }, "url": "{{baseUrl}}/api/orders/{{orderId}}" } },
+        { "name": "Ubah sebagian field pesanan", "request": { "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"customer_name\": \"Yofan\"\n}" }, "url": "{{baseUrl}}/api/orders/{{orderId}}" } },
+        { "name": "Hapus pesanan", "request": { "method": "DELETE", "url": "{{baseUrl}}/api/orders/{{orderId}}" } }
+      ]
+    },
+    {
+      "name": "Pembayaran Admin",
+      "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+      "item": [
+        { "name": "Lihat pembayaran pending/terkonfirmasi", "request": { "method": "GET", "url": "{{baseUrl}}/api/payments" } },
+        { "name": "Konfirmasi pembayaran manual", "request": { "method": "POST", "url": "{{baseUrl}}/api/payments/{{paymentId}}/confirm" } }
+      ]
+    }
+  ]
+}
