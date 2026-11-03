@@ -2,7 +2,7 @@
 
 File ini menangani pembuatan akun, login, logout, dan pemeriksaan akun yang sedang login. Handler menerima request HTTP, berinteraksi dengan tabel `"user"`, lalu mengirim response JSON.
 
-Navigasi: [indeks catatan belajar](../README.md).
+Navigasi: [indeks catatan belajar](../README.md) · [peta autentikasi](../auth/README.md) · [middleware](../auth-middleware.md) · [route](../routes.md).
 
 > **Inti bab:** login menerbitkan JWT HS256 berisi role akun; registrasi publik selalu mendapat role `pembeli`.
 

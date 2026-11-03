@@ -2,17 +2,17 @@
 
 File ini menyiapkan tabel PostgreSQL saat aplikasi mulai.
 
-Navigasi: [indeks](README.md) · [startup](main.md) · [model data](models.md) · [handler menu](handlers/menus.md) · [handler pesanan](handlers/orders.md).
+Navigasi: [indeks](README.md) · [startup](main.md) · [model data](models.md) · [handler menu](handlers/menus.md) · [handler pesanan](handlers/orders.md) · [handler pembayaran](handlers/payments.md).
 
-> **Inti bab:** PostgreSQL menyimpan menu, pesanan, dan akun. Fungsi inisialisasi memastikan tabel ada, tetapi bukan sistem migrasi skema lengkap.
+> **Inti bab:** PostgreSQL menyimpan menu, pesanan, akun, dan pembayaran. Fungsi inisialisasi menyiapkan tabel serta beberapa perubahan untuk database lama; ia bukan sistem migrasi skema lengkap.
 
 File sumber: [db.rs](../src/db.rs).
 
 ## Peta Relasi Data
 
-![Diagram tabel menus, orders, dan user beserta field utamanya. Garis putus-putus menunjukkan bahwa pesanan belum berelasi dengan tabel menu.](visual/model-data.svg)
+![Diagram empat tabel menus, orders, user, dan payments beserta relasi dan field utamanya.](visual/model-data.svg)
 
-`PK` berarti primary key, yaitu identitas unik row. Tabel `orders` saat ini **tidak memiliki foreign key** ke `menus`: `item_name` hanyalah teks yang disimpan pada pesanan. Karena itu, mengganti atau menghapus nama menu tidak otomatis mengubah pesanan lama.
+`PK` berarti primary key, yaitu identitas unik row. Tabel `orders` punya `menu_id` sebagai foreign key ke `menus`, dan `user_id` sebagai foreign key ke pemilik akun. Pesanan juga menyimpan `item_name` dan `unit_price` sebagai snapshot: bila menu diubah atau dihapus, nama dan harga pada pesanan lama tetap tersedia; `menu_id` menjadi `NULL` saat menu dihapus.
 
 ## Import dan Fungsi
 
@@ -43,7 +43,19 @@ File sumber: [db.rs](../src/db.rs).
 | `menu_id` | `INTEGER REFERENCES menus` | Menu yang dibeli; dapat NULL jika menu dihapus. |
 | `unit_price` | `NUMERIC(12,2)` | Snapshot harga ketika order dibuat untuk perhitungan struk. |
 
-Tabel `payments` menghubungkan satu pembayaran ke satu pesanan dan menyimpan user, metode (`cash`/`bank_transfer`), status (`pending`/`paid`/`rejected`), serta waktu konfirmasi. Status `paid` hanya disetel endpoint admin setelah verifikasi manual.
+## Tabel `payments`
+
+| Kolom | Definisi | Arti |
+|---|---|---|
+| `id` | `SERIAL PRIMARY KEY` | Nomor pembayaran otomatis dan unik. |
+| `order_id` | `INTEGER NOT NULL UNIQUE REFERENCES orders(id) ON DELETE CASCADE` | Pesanan yang dibayar; satu pesanan hanya memiliki satu baris pembayaran. |
+| `user_id` | `INTEGER REFERENCES "user"(id) ON DELETE SET NULL` | Akun yang membuat permintaan; menjadi `NULL` bila akun dihapus. |
+| `method` | `TEXT NOT NULL CHECK (...)` | Metode yang diizinkan: `cash` atau `bank_transfer`. |
+| `status` | `TEXT NOT NULL DEFAULT 'pending' CHECK (...)` | Status `pending`, `paid`, atau `rejected`; awalnya `pending`. |
+| `created_at` | `TIMESTAMPTZ NOT NULL DEFAULT NOW()` | Waktu permintaan dibuat. |
+| `paid_at` | `TIMESTAMPTZ` | Waktu konfirmasi; masih `NULL` sebelum pembayaran lunas. |
+
+Status `paid` hanya disetel endpoint admin setelah verifikasi manual. Sistem belum mengirim atau memeriksa transaksi ke payment gateway.
 
 `NOT NULL` melarang nilai SQL `NULL`, tetapi tidak dengan sendirinya melarang teks kosong atau angka nol.
 
@@ -112,7 +124,7 @@ Pola sama digunakan pada `ALTER TABLE`: pemanggilan `.execute(pool).await?;` men
 
 ## Ruang Lingkup Fungsi
 
-Fungsi ini hanya menyiapkan tabel dan tipe kolom. Ia tidak memasukkan data awal, tidak membuat foreign key antara `orders.item_name` dan `menus`, dan tidak membuat constraint agar harga/quantity positif. Pemeriksaan positif ada pada handler, sedangkan nilai contoh/data awal tidak dibuat di sini. Walaupun `CREATE TABLE IF NOT EXISTS` aman dipanggil berulang, perubahan definisi tabel yang telah ada tidak otomatis diterapkan kecuali ada perintah `ALTER TABLE` khusus seperti yang digunakan untuk kolom harga dan password.
+Fungsi ini hanya menyiapkan tabel dan tipe kolom; ia tidak memasukkan data awal atau membuat foreign key dari `orders.item_name` (teks snapshot) ke menu. Relasi menu memakai kolom `orders.menu_id`. Fungsi ini juga tidak membuat constraint agar harga/quantity positif; pemeriksaan tersebut ada pada handler. Walaupun `CREATE TABLE IF NOT EXISTS` aman dipanggil berulang, perubahan definisi tabel yang telah ada tidak otomatis diterapkan kecuali ada perintah `ALTER TABLE` khusus seperti yang digunakan untuk kolom harga dan password.
 
 ---
 

@@ -39,7 +39,7 @@ Server belum menerima request sampai seluruh tahap sebelum `.run().await` berhas
 4. `PORT` dibaca atau memakai `8080`, kemudian `parse::<u16>()` memvalidasi bahwa isinya angka dalam rentang tipe tersebut. Hasil parse adalah `Result`; `.expect(...)` menghentikan startup dengan pesan yang mudah dipahami jika teks port tidak sah.
 5. `PgPoolOptions::new()` membuat konfigurasi pool. `max_connections(5)` membatasi hingga lima koneksi, dan `acquire_timeout(Duration::from_secs(10))` membatasi waktu tunggu memperoleh koneksi.
 6. `.connect(&database_url).await` membuat koneksi pool. `expect` menghentikan proses jika database tidak dapat dijangkau.
-7. `db::initialize_database(&pool).await` menyiapkan tabel `menus`, `orders`, dan `"user"`; kegagalan menghentikan startup.
+7. `db::initialize_database(&pool).await` menyiapkan tabel `menus`, `orders`, `"user"`, dan `payments`; kegagalan menghentikan startup.
 8. `JWT_SECRET` dibaca dan divalidasi minimal 32 byte. Jika tidak ada atau terlalu pendek, startup mengembalikan error konfigurasi.
 9. `println!` menampilkan alamat server.
 10. `HttpServer::new(move || ...)` menyusun aplikasi per worker. `move` menangkap pool dan key ke dalam closure; `pool.clone()` membuat handle pool tambahan.

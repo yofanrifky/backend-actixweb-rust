@@ -12,6 +12,7 @@ backend/
 |   |   |-- auth.rs        # Register, login, logout, dan profil
 |   |   |-- menus.rs       # Operasi menu
 |   |   |-- orders.rs      # Operasi pesanan
+|   |   |-- payments.rs    # Pembayaran dan struk
 |   |   |-- format.rs      # Helper format harga
 |   |   `-- mod.rs         # Daftar modul handler
 |   |-- auth/             # JWT, role, dan password hashing

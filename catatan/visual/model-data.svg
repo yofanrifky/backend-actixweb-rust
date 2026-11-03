@@ -1,7 +1,58 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 430" role="img" aria-labelledby="title desc">
-<title id="title">Peta model data</title><desc id="desc">Tiga tabel menus, orders dan user, dengan field dan catatan bahwa item_name pada pesanan tidak menjadi foreign key ke menu.</desc>
-<defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#111827"/><stop offset="1" stop-color="#172337"/></linearGradient></defs><rect width="1120" height="430" rx="28" fill="url(#bg)"/><text x="42" y="48" font-family="sans-serif" font-size="14" font-weight="700" letter-spacing="2" fill="#b2bfd2">BENTUK DATA</text><text x="42" y="82" font-family="sans-serif" font-size="25" font-weight="700" fill="#f3f6fc">Tiga tabel, tiga tugas yang berbeda</text>
-<g font-family="sans-serif"><rect x="55" y="115" width="300" height="235" rx="18" fill="#202c3f"/><path d="M55 133q0-18 18-18h264q18 0 18 18v44H55z" fill="#304875"/><text x="80" y="155" font-size="19" font-weight="700" fill="#202c3f">menus</text><text x="80" y="210" font-size="15" fill="#dce4f1">id · primary key</text><text x="80" y="243" font-size="15" fill="#dce4f1">name · teks</text><text x="80" y="276" font-size="15" fill="#dce4f1">price · NUMERIC(12, 2)</text><text x="80" y="309" font-size="15" fill="#dce4f1">category · teks</text>
-<rect x="410" y="115" width="300" height="235" rx="18" fill="#202c3f"/><path d="M410 133q0-18 18-18h264q18 0 18 18v44H410z" fill="#207e72"/><text x="435" y="155" font-size="19" font-weight="700" fill="#202c3f">orders</text><text x="435" y="210" font-size="15" fill="#dce4f1">id · primary key</text><text x="435" y="243" font-size="15" fill="#dce4f1">customer_name · teks</text><text x="435" y="276" font-size="15" fill="#dce4f1">item_name · teks biasa</text><text x="435" y="309" font-size="15" fill="#dce4f1">quantity · integer</text><text x="435" y="338" font-size="15" fill="#dce4f1">status · teks</text>
-<rect x="765" y="115" width="300" height="235" rx="18" fill="#202c3f"/><path d="M765 133q0-18 18-18h264q18 0 18 18v44H765z" fill="#87511f"/><text x="790" y="155" font-size="19" font-weight="700" fill="#202c3f">"user"</text><text x="790" y="210" font-size="15" fill="#dce4f1">id · primary key</text><text x="790" y="243" font-size="15" fill="#dce4f1">username · unik</text><text x="790" y="276" font-size="15" fill="#dce4f1">password · teks latihan</text>
-<path d="M710 290h48" stroke="#e9a763" stroke-width="2" stroke-dasharray="6 6"/><text x="560" y="392" text-anchor="middle" font-size="14" font-family="sans-serif" font-weight="700" fill="#ffc37d">Tidak ada relasi foreign key: orders.item_name hanya menyimpan nama menu sebagai teks</text></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 500" role="img" aria-labelledby="title desc">
+  <title id="title">Peta tabel database backend restoran</title>
+  <desc id="desc">Empat tabel menus, orders, user, dan payments. Pesanan terhubung ke akun dan menu, sedangkan pembayaran terhubung ke pesanan dan akun.</desc>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#111827"/><stop offset="1" stop-color="#172337"/></linearGradient>
+  </defs>
+  <rect width="1240" height="500" rx="28" fill="url(#bg)"/>
+  <text x="38" y="43" font-family="sans-serif" font-size="13" font-weight="700" letter-spacing="2" fill="#b2bfd2">BENTUK DATA</text>
+  <text x="38" y="78" font-family="sans-serif" font-size="25" font-weight="700" fill="#f3f6fc">Empat tabel dan relasinya</text>
+  <g font-family="sans-serif">
+    <g>
+      <rect x="30" y="105" width="280" height="305" rx="16" fill="#202c3f"/>
+      <path d="M30 121q0-16 16-16h248q16 0 16 16v42H30z" fill="#304875"/>
+      <text x="52" y="145" font-size="18" font-weight="700" fill="#ffffff">menus</text>
+      <text x="52" y="194" font-size="14" fill="#dce4f1">id · primary key</text>
+      <text x="52" y="225" font-size="14" fill="#dce4f1">name · nama menu</text>
+      <text x="52" y="256" font-size="14" fill="#dce4f1">price · NUMERIC(12, 2)</text>
+      <text x="52" y="287" font-size="14" fill="#dce4f1">category · kategori</text>
+      <text x="52" y="318" font-size="14" fill="#dce4f1">stock · jumlah tersedia</text>
+    </g>
+    <g>
+      <rect x="340" y="105" width="280" height="305" rx="16" fill="#202c3f"/>
+      <path d="M340 121q0-16 16-16h248q16 0 16 16v42H340z" fill="#207e72"/>
+      <text x="362" y="145" font-size="18" font-weight="700" fill="#ffffff">orders</text>
+      <text x="362" y="187" font-size="14" fill="#dce4f1">id · primary key</text>
+      <text x="362" y="214" font-size="14" fill="#dce4f1">customer_name · pelanggan</text>
+      <text x="362" y="241" font-size="14" fill="#dce4f1">item_name · nama saat dibeli</text>
+      <text x="362" y="268" font-size="14" fill="#dce4f1">quantity · jumlah</text>
+      <text x="362" y="295" font-size="14" fill="#dce4f1">status · keadaan pesanan</text>
+      <text x="362" y="322" font-size="14" fill="#dce4f1">user_id · pemilik akun</text>
+      <text x="362" y="349" font-size="14" fill="#dce4f1">menu_id · tautan ke menu</text>
+      <text x="362" y="376" font-size="14" fill="#dce4f1">unit_price · harga saat dibeli</text>
+    </g>
+    <g>
+      <rect x="650" y="105" width="280" height="305" rx="16" fill="#202c3f"/>
+      <path d="M650 121q0-16 16-16h248q16 0 16 16v42H650z" fill="#87511f"/>
+      <text x="672" y="145" font-size="18" font-weight="700" fill="#ffffff">"user"</text>
+      <text x="672" y="194" font-size="14" fill="#dce4f1">id · primary key</text>
+      <text x="672" y="225" font-size="14" fill="#dce4f1">username · unik</text>
+      <text x="672" y="256" font-size="14" fill="#dce4f1">password · hash Argon2id</text>
+      <text x="672" y="287" font-size="14" fill="#dce4f1">role · admin/kasir/pembeli</text>
+    </g>
+    <g>
+      <rect x="960" y="105" width="250" height="305" rx="16" fill="#202c3f"/>
+      <path d="M960 121q0-16 16-16h218q16 0 16 16v42H960z" fill="#6e4b83"/>
+      <text x="982" y="145" font-size="18" font-weight="700" fill="#ffffff">payments</text>
+      <text x="982" y="187" font-size="14" fill="#dce4f1">id · primary key</text>
+      <text x="982" y="214" font-size="14" fill="#dce4f1">order_id · satu per pesanan</text>
+      <text x="982" y="241" font-size="14" fill="#dce4f1">user_id · pembuat permintaan</text>
+      <text x="982" y="268" font-size="14" fill="#dce4f1">method · cash/bank_transfer</text>
+      <text x="982" y="295" font-size="14" fill="#dce4f1">status · pending/paid/rejected</text>
+      <text x="982" y="322" font-size="14" fill="#dce4f1">created_at · waktu dibuat</text>
+      <text x="982" y="349" font-size="14" fill="#dce4f1">paid_at · waktu dikonfirmasi</text>
+    </g>
+  </g>
+  <text x="38" y="445" font-family="sans-serif" font-size="13" font-weight="700" fill="#ffc37d">Relasi: orders.user_id → user.id · orders.menu_id → menus.id · payments.order_id → orders.id · payments.user_id → user.id</text>
+  <text x="38" y="472" font-family="sans-serif" font-size="12" fill="#b2bfd2">orders menyimpan nama dan harga sebagai snapshot; satu order hanya punya satu payment.</text>
+</svg>

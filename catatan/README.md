@@ -14,7 +14,7 @@ Kamu tidak harus membaca semuanya sekaligus. Pilih salah satu jalur di bawah, pe
 | Ingin belajar bertahap selama enam bulan | [Roadmap belajar](roadmap-belajar-6-bulan.md) | Memiliki target mingguan dan evaluasi berbasis bukti. |
 | Baru mengenal backend | [Jalur pemula](#jalur-pemula) | Paham gambaran besar sebelum melihat detail kode. |
 | Ingin API segera jalan | [Menyalakan server](#menyalakan-server) | Server aktif dan siap menerima request lokal. |
-| Ingin mencoba API | [Latihan `curl`](akses_curl.md) | Bisa register, login, dan mengelola menu/pesanan. |
+| Ingin mencoba API | [Latihan `curl`](akses_curl.md) | Bisa register, login, mengelola menu/pesanan, dan mencoba pembayaran. |
 | Sedang membaca satu file | [Peta file](#peta-file) | Langsung masuk ke penjelasan file terkait. |
 
 ## Jalur pemula
@@ -32,7 +32,7 @@ Ikuti urutan ini. Setiap langkah menjawab satu pertanyaan sebelum masuk ke bagia
 | 7 | Bagaimana URL menemukan fungsi yang benar? | [Routing](routes.md) |
 | 8 | Bagaimana server memvalidasi bearer token? | [Autentikasi dan middleware](auth-middleware.md) |
 | 9 | Bagaimana mencoba alur itu dari terminal? | [Latihan `curl`](akses_curl.md) |
-| 10 | Bagaimana handler menjalankan operasi nyata? | [Auth](handlers/auth.md), [menu](handlers/menus.md), [pesanan](handlers/orders.md) |
+| 10 | Bagaimana akun, menu, pesanan, dan pembayaran diproses? | [Autentikasi](auth/README.md), [menu](handlers/menus.md), [pesanan](handlers/orders.md), [pembayaran](handlers/payments.md) |
 
 **Pola yang akan sering terlihat:** ambil input → periksa → query database → bentuk response.
 
@@ -84,21 +84,38 @@ Jalankan perintah dari folder yang berisi `Cargo.toml`. Server default mendengar
 
 ## Peta file
 
-| Bagian | Catatan belajar | Peran sederhananya |
+### Konfigurasi, aplikasi, dan database
+
+| File sumber | Catatan belajar | Peran sederhananya |
 |---|---|---|
 | `.env` | [Konfigurasi](env.md) | Menyediakan nilai lokal seperti URL database. |
 | `Cargo.toml` | [Dependency](cargo.md) | Mencatat pustaka yang dipakai. |
 | `src/main.rs` | [Startup](main.md) | Merangkai semua bagian dan menyalakan server. |
-| `src/state.rs` | [State](state.md) | Membagikan pool database kepada handler. |
+| `src/state.rs` | [State](state.md) | Membagikan pool database dan layanan JWT. |
 | `src/db.rs` | [Skema database](db.md) | Membuat tabel saat startup. |
 | `src/models.rs` | [Model](models.md) | Mendefinisikan bentuk data Rust. |
+
+### Routing dan autentikasi
+
+| File sumber | Catatan belajar | Peran sederhananya |
+|---|---|---|
 | `src/routes.rs` | [Route](routes.md) | Menghubungkan URL dan metode ke fungsi handler. |
 | `src/auth_middleware.rs` | [Middleware login](auth-middleware.md) | Menolak request terlindungi tanpa JWT valid. |
+| `src/auth/mod.rs` | [Peta modul autentikasi](auth/mod.md) | Mengumumkan layanan JWT, password, dan role. |
+| `src/auth/jwt.rs` | [Layanan JWT](auth/jwt.md) | Membuat token login dan memeriksanya. |
+| `src/auth/password.rs` | [Layanan password](auth/password.md) | Membuat dan memeriksa hash password. |
+| `src/auth/role.rs` | [Tipe role](auth/role.md) | Menetapkan role yang dikenal aplikasi. |
+
+### Handler API
+
+| File sumber | Catatan belajar | Peran sederhananya |
+|---|---|---|
 | `src/handlers/mod.rs` | [Modul handler](handlers/mod.md) | Memberi tahu Rust file handler yang tersedia. |
 | `src/handlers/auth.rs` | [Autentikasi](handlers/auth.md) | Register, login, logout, dan profil. |
 | `src/handlers/format.rs` | [Format harga](handlers/format.md) | Menulis harga dalam format Rupiah. |
 | `src/handlers/menus.rs` | [Handler menu](handlers/menus.md) | Operasi data menu. |
 | `src/handlers/orders.rs` | [Handler pesanan](handlers/orders.md) | Operasi data pesanan. |
+| `src/handlers/payments.rs` | [Handler pembayaran](handlers/payments.md) | Permintaan pembayaran, konfirmasi, dan struk. |
 
 ## API yang bisa dicoba
 
@@ -110,6 +127,7 @@ Semua alamat memakai awalan `/api`. `Ya` berarti klien perlu mengirim bearer tok
 | `POST` | `/api/auth/login` | Tidak | Memeriksa akun dan mengirim JWT. |
 | `POST` | `/api/auth/logout` | Tidak | Menginstruksikan klien membuang token. |
 | `GET` | `/api/auth/me` | Ya | Mengambil identitas akun aktif. |
+| `PUT` | `/api/auth/users/{id}/role` | Admin | Mengubah role akun. |
 | `GET` | `/api/menus` | Ya | Membaca daftar menu; `?field=name` memilih satu kolom. |
 | `GET` | `/api/menus/{id}` | Ya | Membaca satu menu. |
 | `POST` | `/api/menus` | Ya | Menambah menu. |
@@ -124,7 +142,7 @@ Semua alamat memakai awalan `/api`. `Ya` berarti klien perlu mengirim bearer tok
 | `POST` | `/api/payments/{id}/confirm` | Admin | Mengonfirmasi pembayaran manual. |
 | `GET` | `/api/orders/{id}/receipt` | Admin/pemilik | Struk setelah status paid. |
 
-Untuk semua field dan contoh request/response, buka [daftar route lengkap](routes.md) atau bab [menu](handlers/menus.md) dan [pesanan](handlers/orders.md).
+Untuk semua field dan contoh request/response, buka [daftar route lengkap](routes.md), bab [menu](handlers/menus.md), [pesanan](handlers/orders.md), dan [pembayaran](handlers/payments.md).
 
 ### Dua bentuk data penting
 

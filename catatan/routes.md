@@ -2,7 +2,7 @@
 
 File ini mendaftarkan pasangan metode HTTP dan path, lalu menghubungkannya ke handler.
 
-Navigasi: [indeks](README.md) · [middleware](auth-middleware.md) · [handler autentikasi](handlers/auth.md) · [contoh `curl`](akses_curl.md).
+Navigasi: [indeks](README.md) · [middleware](auth-middleware.md) · [handler autentikasi](handlers/auth.md) · [handler pembayaran](handlers/payments.md) · [contoh `curl`](akses_curl.md).
 
 > **Inti bab:** route mencocokkan metode HTTP dan URL, lalu mengarahkan request ke handler. Scope route juga menentukan middleware login.
 
@@ -38,6 +38,7 @@ File sumber: [routes.rs](../src/routes.rs).
 | POST | `/api/auth/login` | `auth::login` | Memeriksa akun dan menerbitkan JWT bearer. |
 | POST | `/api/auth/logout` | `auth::logout` | Memberi tahu klien untuk membuang token. |
 | GET | `/api/auth/me` | `auth::me` | Melihat akun yang sedang login; perlu login. |
+| PUT | `/api/auth/users/{id}/role` | `auth::update_user_role` | Admin mengubah role akun. |
 
 Policy route: semua role membaca katalog, admin/kasir mengubah katalog dan stok, pembeli membuat pembelian serta membuka detail miliknya, admin mengelola seluruh pesanan. Kasir tidak dapat melihat endpoint pembelian. Register dan login terbuka; register selalu menetapkan role pembeli. Logout tidak mencabut JWT stateless.
 
@@ -80,7 +81,7 @@ Pembahasan ini menjelaskan signature, builder, dan cara scope menggabungkan path
 
 Pada `pub fn configure(config: &mut web::ServiceConfig)`, `pub` berarti fungsi dapat dipanggil dari modul lain; `fn` mendeklarasikan fungsi biasa (tidak asynchronous); `config` adalah nama parameter; `&mut` berarti fungsi menerima pinjaman yang boleh diubah; `web::ServiceConfig` adalah tipe konfigurasi Actix. Fungsi tidak menulis tipe return, sehingga return-nya unit `()` secara implisit.
 
-`crate::handlers` berarti mulai pencarian dari root crate saat ini, lalu masuk ke modul `handlers`. Bentuk `use crate::handlers::{auth, menus, orders};` mengimpor tiga submodul handler sekaligus.
+`crate::handlers` berarti mulai pencarian dari root crate saat ini, lalu masuk ke modul `handlers`. Bentuk `use crate::handlers::{auth, menus, orders, payments};` mengimpor submodul handler yang dipakai router sekaligus.
 
 ## Builder dan Rangkaian Pemanggilan
 
