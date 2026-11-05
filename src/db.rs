@@ -98,6 +98,28 @@ pub async fn initialize_database(pool: &PgPool) -> Result<(), sqlx::Error> {
     .execute(pool)
     .await?;
 
+    sqlx::query("ALTER TABLE payments DROP CONSTRAINT IF EXISTS payments_status_check")
+        .execute(pool)
+        .await?;
+
+    sqlx::query("UPDATE payments SET status = 'lunas' WHERE status = 'paid'")
+        .execute(pool)
+        .await?;
+
+    sqlx::query(
+        "DO $$ BEGIN
+            IF NOT EXISTS (
+                SELECT 1 FROM pg_constraint
+                WHERE conname = 'payments_status_valid' AND conrelid = 'payments'::regclass
+            ) THEN
+                ALTER TABLE payments ADD CONSTRAINT payments_status_valid
+                    CHECK (status IN ('pending', 'lunas', 'rejected'));
+            END IF;
+        END $$",
+    )
+    .execute(pool)
+    .await?;
+
     sqlx::query(
         "ALTER TABLE menus ALTER COLUMN price TYPE NUMERIC(12, 2) USING price::NUMERIC(12, 2)",
     )

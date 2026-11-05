@@ -12,8 +12,8 @@ pub struct CreatePaymentInput {
 pub async fn list_payments(state: web::Data<AppState>) -> Result<HttpResponse, actix_web::Error> {
     let payments = sqlx::query_as::<_, (i32, i32, Option<i32>, String, String, String)>(
         r#"SELECT p.id, p.order_id, p.user_id, p.method, p.status,
-                  to_char(p.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
-           FROM payments p ORDER BY p.id DESC"#,
+            to_char(p.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+            FROM payments p ORDER BY p.id DESC"#,
     )
     .fetch_all(&state.db)
     .await
@@ -52,9 +52,9 @@ pub async fn create_payment(
     let order_id = path.into_inner();
     let payment = sqlx::query_as::<_, (i32, String, String)>(
         r#"INSERT INTO payments (order_id, user_id, method)
-           SELECT id, user_id, $3 FROM orders
-           WHERE id = $1 AND ($2 OR user_id = $4)
-           RETURNING id, method, status"#,
+            SELECT id, user_id, $3 FROM orders
+            WHERE id = $1 AND ($2 OR user_id = $4)
+            RETURNING id, method, status"#,
     )
     .bind(order_id)
     .bind(user.role == crate::auth::role::Role::Admin)
@@ -96,8 +96,8 @@ pub async fn confirm_payment(
         .begin()
         .await
         .map_err(|_| error::ErrorInternalServerError("Gagal memulai konfirmasi pembayaran"))?;
-    let payment = sqlx::query_as::<_, (i32, i32, String)>(
-        "UPDATE payments SET status = 'paid', paid_at = NOW() WHERE id = $1 AND status = 'pending' RETURNING id, order_id, status",
+    let payment = sqlx::query_as::<_, (i32, i32)>(
+        "UPDATE payments SET status = 'lunas', paid_at = NOW() WHERE id = $1 AND status = 'pending' RETURNING id, order_id",
     )
     .bind(path.into_inner())
     .fetch_optional(&mut *transaction)
@@ -105,8 +105,8 @@ pub async fn confirm_payment(
     .map_err(|_| error::ErrorInternalServerError("Gagal mengonfirmasi pembayaran"))?;
 
     match payment {
-        Some((payment_id, order_id, status)) => {
-            sqlx::query("UPDATE orders SET status = 'paid' WHERE id = $1")
+        Some((payment_id, order_id)) => {
+            sqlx::query("UPDATE orders SET status = 'lunas' WHERE id = $1")
                 .bind(order_id)
                 .execute(&mut *transaction)
                 .await
@@ -118,7 +118,7 @@ pub async fn confirm_payment(
             Ok(HttpResponse::Ok().json(serde_json::json!({
                 "payment_id": payment_id,
                 "order_id": order_id,
-                "status": status,
+                "status": "lunas",
                 "message": "Pembayaran dikonfirmasi"
             })))
         }
@@ -140,10 +140,10 @@ pub async fn get_receipt(
 ) -> Result<HttpResponse, actix_web::Error> {
     let receipt = sqlx::query_as::<_, (i32, String, String, i32, Option<Decimal>, Option<String>)>(
         r#"SELECT o.id, o.customer_name, o.item_name, o.quantity,
-                  o.unit_price * o.quantity, to_char(p.paid_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
-           FROM orders o
-           JOIN payments p ON p.order_id = o.id
-           WHERE o.id = $1 AND p.status = 'paid' AND ($2 OR o.user_id = $3)"#,
+            o.unit_price * o.quantity, to_char(p.paid_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+            FROM orders o
+            JOIN payments p ON p.order_id = o.id
+            WHERE o.id = $1 AND p.status = 'lunas' AND ($2 OR o.user_id = $3)"#,
     )
     .bind(path.into_inner())
     .bind(user.role == crate::auth::role::Role::Admin)
