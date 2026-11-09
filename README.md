@@ -89,9 +89,7 @@ Setelah itu login ulang. Admin dapat mengatur role melalui `PUT /api/auth/users/
 | PUT | `/api/orders/{id}` | Mengganti seluruh field pesanan | Admin |
 | PATCH | `/api/orders/{id}` | Mengganti sebagian field pesanan | Admin |
 | DELETE | `/api/orders/{id}` | Menghapus pesanan | Admin |
-| POST | `/api/orders/{id}/payment` | Membuat permintaan pembayaran `pending` | Admin/pemilik |
-| GET | `/api/payments` | Daftar seluruh pembayaran untuk verifikasi | Admin |
-| POST | `/api/payments/{id}/confirm` | Konfirmasi pembayaran setelah verifikasi manual | Admin |
+| GET | `/api/payments` | Daftar pembayaran yang tercatat | Admin |
 | GET | `/api/orders/{id}/receipt` | Mendapat struk untuk pembayaran lunas | Admin/pemilik |
 
 Request terlindungi tanpa bearer token, dengan token rusak, atau token kedaluwarsa akan ditolak dengan `401 Unauthorized`.
@@ -117,11 +115,12 @@ Body untuk membuat pesanan:
 {
   "customer_name": "Budi",
   "menu_id": 1,
-  "quantity": 2
+  "quantity": 2,
+  "payment_method": "cash"
 }
 ```
 
-Status awal pesanan ditetapkan server sebagai `pending`. Pembelian hanya berhasil bila stok cukup; pengurangan stok dan pencatatan pesanan berada dalam satu transaksi. Pembayaran saat ini manual: buyer mengirim metode `cash`/`bank_transfer` dan status selalu `pending`; admin hanya boleh mengonfirmasi setelah memverifikasi pembayaran di luar sistem. Struk baru tersedia setelah konfirmasi. Ini bukan payment gateway dan belum memproses uang. Untuk pembayaran online, integrasikan provider dan verifikasi signature callback/webhook sebelum menandai pembayaran lunas.
+Metode `payment_method` wajib berupa `cash` atau `bank_transfer`. Jika stok cukup, server menghitung total dari harga menu di database dan mencatat order serta payment berstatus `lunas` dalam satu transaksi. Response order menyertakan ID payment, metode, total, dan mata uang `IDR`; struk bisa langsung diambil. Ini simulasi pencatatan, bukan bukti uang diterima atau integrasi payment gateway.
 
 `PUT` memerlukan semua field input. `PATCH` hanya memerlukan field yang ingin diubah, contohnya:
 
@@ -135,6 +134,6 @@ Pada `GET /api/menus`, parameter `field` yang didukung adalah `id`, `name`, `pri
 
 ## Postman
 
-Impor `postman/Restoran-API.postman_collection.json`, jalankan server, lalu register dan login. Login otomatis menyimpan bearer token. Role register adalah `pembeli`; untuk mencoba admin/kasir, gunakan endpoint admin setelah admin pertama dipromosikan lewat SQL. Pembelian, permintaan pembayaran, konfirmasi admin, dan struk tersedia dengan verifikasi pembayaran manual.
+Impor `postman/Restoran-API.postman_collection.json`, jalankan server, lalu register dan login. Login otomatis menyimpan bearer token. Role register adalah `pembeli`; untuk mencoba admin/kasir, gunakan endpoint admin setelah admin pertama dipromosikan lewat SQL. Pembelian dan pencatatan pembayaran dilakukan langsung dalam satu request; konfirmasi admin tidak diperlukan.
 
 Panduan menguji API dari terminal menggunakan `curl` ada di [catatan/akses_curl.md](catatan/akses_curl.md). Panduan pemula yang membahas implementasi per file ada di [catatan/README.md](catatan/README.md).# backend-actixweb-rust

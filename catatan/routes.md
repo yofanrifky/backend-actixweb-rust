@@ -30,10 +30,8 @@ File sumber: [routes.rs](../src/routes.rs).
 | PUT | `/api/orders/{id}` | `orders::update_order` | Mengganti seluruh field pesanan. |
 | PATCH | `/api/orders/{id}` | `orders::patch_order` | Mengganti sebagian field pesanan. |
 | DELETE | `/api/orders/{id}` | `orders::delete_order` | Menghapus pesanan. |
-| POST | `/api/orders/{id}/payment` | `payments::create_payment` | Membuat permintaan pembayaran pending. |
 | GET | `/api/payments` | `payments::list_payments` | Daftar pembayaran admin. |
-| POST | `/api/payments/{id}/confirm` | `payments::confirm_payment` | Konfirmasi manual oleh admin. |
-| GET | `/api/orders/{id}/receipt` | `payments::get_receipt` | Struk setelah pembayaran terkonfirmasi. |
+| GET | `/api/orders/{id}/receipt` | `payments::get_receipt` | Struk setelah pembayaran tercatat lunas. |
 | POST | `/api/auth/register` | `auth::register` | Membuat akun; tidak perlu login. |
 | POST | `/api/auth/login` | `auth::login` | Memeriksa akun dan menerbitkan JWT bearer. |
 | POST | `/api/auth/logout` | `auth::logout` | Memberi tahu klien untuk membuang token. |
@@ -52,9 +50,8 @@ Policy route: semua role membaca katalog, admin/kasir mengubah katalog dan stok,
 | `/api/auth/users/{id}/role` | Admin | Mengubah role ke salah satu nilai yang diizinkan. |
 | `/api/menus/*` | Bearer JWT | Semua role membaca; hanya admin/kasir mengubah menu dan stok. |
 | `/api/orders/*` | Bearer JWT + role | Admin semua; buyer membuat dan melihat miliknya; kasir ditolak. |
-| `/api/payments` | Admin | Melihat payment untuk diverifikasi. |
-| `/api/payments/{id}/confirm` | Admin | Konfirmasi manual; mengubah order/payment atomik. |
-| `/api/orders/{id}/payment`, `/receipt` | Buyer pemilik/admin | Buyer membuat payment dan melihat struk miliknya. |
+| `/api/payments` | Admin | Melihat daftar payment yang tercatat. |
+| `/api/orders/{id}/receipt` | Buyer pemilik/admin | Melihat struk pembayaran. Payment dicatat saat order dibuat. |
 
 Tanda `*` pada tabel hanya ringkasan seluruh route di bawah prefix; bukan wildcard yang dikirim sebagai URL literal.
 

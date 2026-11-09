@@ -51,11 +51,11 @@ File sumber: [db.rs](../src/db.rs).
 | `order_id` | `INTEGER NOT NULL UNIQUE REFERENCES orders(id) ON DELETE CASCADE` | Pesanan yang dibayar; satu pesanan hanya memiliki satu baris pembayaran. |
 | `user_id` | `INTEGER REFERENCES "user"(id) ON DELETE SET NULL` | Akun yang membuat permintaan; menjadi `NULL` bila akun dihapus. |
 | `method` | `TEXT NOT NULL CHECK (...)` | Metode yang diizinkan: `cash` atau `bank_transfer`. |
-| `status` | `TEXT NOT NULL DEFAULT 'pending' CHECK (...)` | Status `pending`, `paid`, atau `rejected`; awalnya `pending`. |
+| `status` | `TEXT NOT NULL DEFAULT 'pending' CHECK (...)` | Status `pending`, `lunas`, atau `rejected`; alur order baru secara eksplisit mencatat `lunas`. |
 | `created_at` | `TIMESTAMPTZ NOT NULL DEFAULT NOW()` | Waktu permintaan dibuat. |
-| `paid_at` | `TIMESTAMPTZ` | Waktu konfirmasi; masih `NULL` sebelum pembayaran lunas. |
+| `paid_at` | `TIMESTAMPTZ` | Waktu payment dicatat lunas; masih `NULL` untuk payment pending. |
 
-Status `paid` hanya disetel endpoint admin setelah verifikasi manual. Sistem belum mengirim atau memeriksa transaksi ke payment gateway.
+Pada simulasi ini, order dan payment dicatat lunas dalam satu transaksi. Sistem tidak mengirim atau memeriksa transaksi ke bank/payment gateway.
 
 `NOT NULL` melarang nilai SQL `NULL`, tetapi tidak dengan sendirinya melarang teks kosong atau angka nol.
 

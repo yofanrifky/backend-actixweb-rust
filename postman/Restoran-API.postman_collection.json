@@ -43,8 +43,7 @@
       "item": [
         { "name": "Lihat semua pesanan", "request": { "method": "GET", "url": "{{baseUrl}}/api/orders" } },
         { "name": "Lihat pesanan berdasarkan ID", "request": { "method": "GET", "url": "{{baseUrl}}/api/orders/{{orderId}}" } },
-        { "name": "Beli menu", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"customer_name\": \"Budi\",\n  \"menu_id\": {{menuId}},\n  \"quantity\": 2\n}" }, "url": "{{baseUrl}}/api/orders" }, "event": [{ "listen": "test", "script": { "exec": ["const body = pm.response.json();", "if (pm.response.code === 201 && body.id) {", "  pm.collectionVariables.set('orderId', String(body.id));", "}"], "type": "text/javascript" } }] },
-        { "name": "Minta pembayaran", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"method\": \"bank_transfer\"\n}" }, "url": "{{baseUrl}}/api/orders/{{orderId}}/payment" }, "event": [{ "listen": "test", "script": { "exec": ["const body = pm.response.json();", "if (pm.response.code === 201 && body.payment_id) {", "  pm.collectionVariables.set('paymentId', String(body.payment_id));", "}"], "type": "text/javascript" } }] },
+        { "name": "Beli menu dan bayar", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"customer_name\": \"Budi\",\n  \"menu_id\": {{menuId}},\n  \"quantity\": 2,\n  \"payment_method\": \"cash\"\n}" }, "url": "{{baseUrl}}/api/orders" }, "event": [{ "listen": "test", "script": { "exec": ["const body = pm.response.json();", "if (pm.response.code === 201 && body.id) {", "  pm.collectionVariables.set('orderId', String(body.id));", "}"], "type": "text/javascript" } }] },
         { "name": "Lihat struk", "request": { "method": "GET", "url": "{{baseUrl}}/api/orders/{{orderId}}/receipt" } },
         { "name": "Ubah pesanan", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"customer_name\": \"Budi\",\n  \"item_name\": \"Nasi Goreng Spesial\",\n  \"quantity\": 3,\n  \"status\": \"diproses\"\n}" }, "url": "{{baseUrl}}/api/orders/{{orderId}}" } },
         { "name": "Ubah sebagian field pesanan", "request": { "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"customer_name\": \"Yofan\"\n}" }, "url": "{{baseUrl}}/api/orders/{{orderId}}" } },
@@ -52,11 +51,10 @@
       ]
     },
     {
-      "name": "Pembayaran Admin",
+      "name": "Pembayaran",
       "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
       "item": [
-        { "name": "Lihat pembayaran pending/terkonfirmasi", "request": { "method": "GET", "url": "{{baseUrl}}/api/payments" } },
-        { "name": "Konfirmasi pembayaran manual", "request": { "method": "POST", "url": "{{baseUrl}}/api/payments/{{paymentId}}/confirm" } }
+        { "name": "Lihat pembayaran tercatat", "request": { "method": "GET", "url": "{{baseUrl}}/api/payments" } }
       ]
     }
   ]

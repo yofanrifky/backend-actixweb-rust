@@ -50,6 +50,7 @@ pub struct CreateOrderInput {
     pub customer_name: String,
     pub menu_id: i32,
     pub quantity: i32,
+    pub payment_method: String,
 }
 
 #[derive(Debug, Deserialize)]

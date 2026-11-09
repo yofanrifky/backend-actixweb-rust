@@ -28,7 +28,7 @@ File sumber: [orders.rs](../../src/handlers/orders.rs).
 |---|---|---|---|
 | GET daftar | Query opsional `field` | Array | Urut ID turun; filter mengambil satu kolom. |
 | GET satu | ID pada path | Array | ID tidak ada → `404`. |
-| POST | `OrderInput` lengkap | Object, `201` | Quantity positif; teks wajib terisi. |
+| POST | Nama, menu, jumlah, metode pembayaran | Object, `201` | Order dan payment lunas dicatat atomik. |
 | PUT | ID + `OrderInput` lengkap | Object, `200` | Mengganti semua field. |
 | PATCH | ID + satu atau lebih field | Object, `200` | Field lain tetap; body `{}` ditolak. |
 | DELETE | ID | Pesan, `200` | ID yang tidak ada → `404`. |
@@ -71,7 +71,7 @@ Menangani `GET /api/orders/{id}`. Mengikat ID ke `$1` dan mencari dengan `fetch_
 
 ## `create_order`
 
-Menangani `POST /api/orders`. Input memakai `customer_name`, `menu_id`, dan `quantity`; klien tidak menentukan harga atau status. Dalam transaksi, handler mengurangi stok hanya jika jumlah cukup, mengambil harga/nama menu dari database, lalu menyimpan order `pending` dengan user ID dan snapshot harga. Jika stok kurang atau salah satu langkah gagal, transaksi dibatalkan.
+Menangani `POST /api/orders`. Input memakai `customer_name`, `menu_id`, `quantity`, dan `payment_method`; klien tidak menentukan harga atau status. Metode hanya `cash` atau `bank_transfer`. Dalam satu transaksi, handler mengurangi stok bila cukup, mengambil harga/nama menu dari database, menyimpan order berstatus `lunas` beserta snapshot harga, dan membuat payment lunas dengan `paid_at`. Total dihitung dari harga snapshot dikali jumlah. Jika stok kurang atau salah satu query gagal, seluruh transaksi dibatalkan. Response berisi data order dan object `payment` dengan ID, metode, status, total, dan mata uang.
 
 ## `update_order`
 
@@ -226,13 +226,13 @@ Content-Type: application/json
 
 {
 	"customer_name": "Ayu",
-	"item_name": "Nasi Goreng",
+	"menu_id": 1,
 	"quantity": 2,
-	"status": "menunggu"
+	"payment_method": "cash"
 }
 ```
 
-Jika lolos validasi, server mengembalikan `201 Created` dengan object `Order`, termasuk ID yang dibuat database.
+Jika lolos validasi, server mengembalikan `201 Created` dengan order berstatus `lunas` dan detail pembayaran simulasi. Harga/total tetap dihitung server, bukan dikirim klien.
 
 PATCH dapat mengirim satu field:
 

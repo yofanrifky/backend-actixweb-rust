@@ -168,7 +168,7 @@ pub async fn create_order(
     };
 
     let order = match sqlx::query_as::<_, Order>(
-        "INSERT INTO orders (customer_name, item_name, quantity, status, user_id, menu_id, unit_price) VALUES ($1, $2, $3, 'pending', $4, $5, $6) RETURNING id, customer_name, item_name, quantity, status",
+        "INSERT INTO orders (customer_name, item_name, quantity, status, user_id, menu_id, unit_price) VALUES ($1, $2, $3, 'lunas', $4, $5, $6) RETURNING id, customer_name, item_name, quantity, status",
     )
     .bind(body.customer_name.trim())
     .bind(item_name)
@@ -186,11 +186,41 @@ pub async fn create_order(
         }
     };
 
+    let total = unit_price * rust_decimal::Decimal::from(body.quantity);
+    let payment_id = match sqlx::query_scalar::<_, i32>(
+        "INSERT INTO payments (order_id, user_id, method, status, paid_at) VALUES ($1, $2, $3, 'lunas', NOW()) RETURNING id",
+    )
+    .bind(order.id)
+    .bind(user.user_id)
+    .bind(body.payment_method.trim())
+    .fetch_one(&mut *transaction)
+    .await
+    {
+        Ok(payment_id) => payment_id,
+        Err(error) => {
+            let _ = transaction.rollback().await;
+            return database_error("Gagal mencatat pembayaran", error);
+        }
+    };
+
     if let Err(error) = transaction.commit().await {
         return database_error("Gagal menyelesaikan pembelian", error);
     }
 
-    HttpResponse::Created().json(order)
+    HttpResponse::Created().json(serde_json::json!({
+        "id": order.id,
+        "customer_name": order.customer_name,
+        "item_name": order.item_name,
+        "quantity": order.quantity,
+        "status": order.status,
+        "payment": {
+            "id": payment_id,
+            "method": body.payment_method.trim(),
+            "status": "lunas",
+            "total": total,
+            "currency": "IDR"
+        }
+    }))
 }
 
 pub async fn update_order(
@@ -327,6 +357,11 @@ fn validate_new_order(order: &CreateOrderInput) -> Option<HttpResponse> {
     if order.menu_id <= 0 || order.quantity <= 0 {
         return Some(HttpResponse::BadRequest().json(serde_json::json!({
             "error": "ID menu dan jumlah pesanan harus lebih besar dari 0"
+        })));
+    }
+    if !matches!(order.payment_method.trim(), "cash" | "bank_transfer") {
+        return Some(HttpResponse::BadRequest().json(serde_json::json!({
+            "error": "Metode pembayaran harus cash atau bank_transfer"
         })));
     }
     None

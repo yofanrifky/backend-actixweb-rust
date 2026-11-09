@@ -301,14 +301,15 @@ Body:
 {
   "customer_name": "Budi",
   "menu_id": 1,
-  "quantity": 2
+  "quantity": 2,
+  "payment_method": "cash"
 }
 ```
 - `menu_id` adalah id menu dari `GET /api/menus`.
 - `quantity` harus lebih dari 0.
-- Berhasil hanya kalau **stok cukup**. Stok berkurang otomatis dalam satu transaksi dengan pencatatan pesanan.
-- Status awal pesanan: `pending` (ditetapkan server, jangan dikirim).
-- **Catat `id` pesanan dari response.** Id ini dipakai untuk payment dan struk.
+- `payment_method` harus `cash` atau `bank_transfer`.
+- Server menghitung total dari harga menu dan jumlah. Jika stok cukup, order serta payment simulasi berstatus `lunas` dicatat dalam satu transaksi.
+- **Catat `id` pesanan dari response.** Id ini dipakai untuk mengambil struk.
 
 ### 7.2 Daftar pesanan (admin/pembeli)
 ```
@@ -353,76 +354,31 @@ Auth : Bearer {{token}}   (token admin)
 
 ---
 
-## 8. 💳 Template request: Payment dan struk
+## 8. 💳 Pembayaran dan struk
 
-> ℹ️ Pembayaran di sistem ini **manual**, bukan payment gateway.
-> API hanya **mencatat** pembayaran. Uangnya dibayar di luar sistem, lalu **admin memverifikasi** dan mengonfirmasi.
+Pembayaran dicatat otomatis saat `POST /api/orders`; tidak ada request pembayaran kedua atau konfirmasi admin.
 
-### 8.1 Ajukan pembayaran (admin / pembeli pemilik pesanan)
-```
-POST {{base_url}}/api/orders/15/payment
-Auth : Bearer {{token}}
-```
-Ganti `15` dengan id pesananmu. Metode pembayaran yang disebut README: `cash` atau `bank_transfer`.
-
-⚠️ **Nama field JSON belum terkonfirmasi.** Dugaan (belum dibuktikan dari kode):
-```json
-{ "method": "cash" }
-```
-```json
-{ "method": "bank_transfer" }
-```
-Cara memastikan: lihat contoh di koleksi Postman repo, atau baca `create_payment` di `src/handlers/payments.rs`.
-Kalau nama field salah, baca pesan error di response `400`.
-
-Status payment awal: **`pending`** (ditetapkan server).
-
-### 8.2 Lihat semua payment (khusus admin)
+### 8.1 Lihat semua payment (khusus admin)
 ```
 GET {{base_url}}/api/payments
 Auth : Bearer {{token}}   (token admin)
 ```
-Dipakai admin untuk memverifikasi daftar pembayaran. Catat `id` payment yang mau dikonfirmasi.
 
-### 8.3 Konfirmasi payment (khusus admin)
-```
-POST {{base_url}}/api/payments/7/confirm
-Auth : Bearer {{token}}   (token admin)
-```
-- Ganti `7` dengan **id payment** (dari 8.2), **bukan** id pesanan.
-- Lakukan hanya **setelah** uang benar-benar diverifikasi di luar sistem.
-- Menurut README, konfirmasi mengubah order dan payment secara atomik (bersamaan).
-
-### 8.4 Ambil struk (admin / pembeli pemilik)
+### 8.2 Ambil struk (admin / pembeli pemilik)
 ```
 GET {{base_url}}/api/orders/15/receipt
 Auth : Bearer {{token}}
 ```
-Struk **hanya tersedia setelah payment dikonfirmasi** (lunas).
-
-### 🔄 Perjalanan status payment
-```
- pembeli: POST /orders/15/payment
-        │
-        ▼
-   ┌─────────┐   [bayar di luar sistem]   ┌──────────────┐
-   │ pending │ ─────────────────────────► │ admin:       │
-   └─────────┘                            │ POST confirm │
-                                          └──────┬───────┘
-                                                 ▼
-                                            ┌────────┐
-                                            │  paid  │ ──► GET /receipt bisa dipakai
-                                            └────────┘
-```
+Struk langsung tersedia setelah order berhasil. Status `lunas` di proyek ini adalah simulasi pencatatan metode pembayaran, bukan bukti uang diterima atau transfer terverifikasi.
 
 ---
 
 ## 9. 🛒 Alur lengkap sebagai pelanggan
 
 ```
- 1. Register ─► 2. Login ─► 3. Lihat menu ─► 4. Pesan ─► 5. Ajukan payment
-                                                              │
-                              7. Ambil struk ◄── 6. Tunggu admin konfirmasi
+ 1. Register ─► 2. Login ─► 3. Lihat menu ─► 4. Pesan + pilih metode
+                                                │
+                                  5. Payment tercatat ─► 6. Ambil struk
 ```
 
 | # | Request | Isi |
@@ -430,17 +386,16 @@ Struk **hanya tersedia setelah payment dikonfirmasi** (lunas).
 | 1 | `POST /api/auth/register` | `{"username":"budi","password":"rahasia123"}` |
 | 2 | `POST /api/auth/login`    | body sama, lalu simpan token |
 | 3 | `GET /api/menus`          | catat `id` menu dan cek stok |
-| 4 | `POST /api/orders`        | `{"customer_name":"Budi","menu_id":1,"quantity":2}`, catat `id` pesanan |
-| 5 | `POST /api/orders/{id}/payment` | metode bayar ⚠️ (lihat 8.1), lalu bayar di luar sistem |
-| 6 | `GET /api/orders/{id}`    | cek perkembangan (admin yang mengonfirmasi) |
-| 7 | `GET /api/orders/{id}/receipt` | struk, setelah dikonfirmasi |
+| 4 | `POST /api/orders`        | `{"customer_name":"Budi","menu_id":1,"quantity":2,"payment_method":"cash"}`, catat `id` pesanan |
+| 5 | `GET /api/orders/{id}`    | cek order berstatus lunas |
+| 6 | `GET /api/orders/{id}/receipt` | struk langsung tersedia |
 
 ---
 
 ## 10. 👑 Alur lengkap sebagai admin
 
 ```
- Login ─► cek /me ─► kelola menu ─► (pembeli pesan & bayar) ─► verifikasi ─► confirm
+ Login ─► cek /me ─► kelola menu ─► (pembeli pesan dan payment tercatat otomatis)
 ```
 
 | # | Request | Keterangan |
@@ -451,9 +406,8 @@ Struk **hanya tersedia setelah payment dikonfirmasi** (lunas).
 | 4 | `PATCH /api/menus/1` | `{"stock": 50}` |
 | 5 | `GET /api/orders` | lihat semua pesanan |
 | 6 | `PATCH /api/orders/15` | `{"status":"diproses"}` |
-| 7 | `GET /api/payments` | lihat payment `pending`, catat id payment |
-| 8 | `POST /api/payments/{id}/confirm` | setelah uang diverifikasi |
-| 9 | `PUT /api/auth/users/2/role` | `{"role":"kasir"}` untuk menaikkan role user lain |
+| 7 | `GET /api/payments` | lihat daftar payment simulasi |
+| 8 | `PUT /api/auth/users/2/role` | `{"role":"kasir"}` untuk mengubah role user lain |
 
 ---
 
@@ -488,7 +442,7 @@ Struk **hanya tersedia setelah payment dikonfirmasi** (lunas).
 | `403` "Role tidak memiliki akses..." | Role tidak diizinkan untuk endpoint itu | Pakai akun dengan role yang sesuai (lihat bagian 3) |
 | `400` saat membuat pesanan | `quantity` 0 atau field kurang | Periksa isi JSON |
 | Pesanan gagal | Stok tidak cukup | Cek stok lewat `GET /api/menus/{id}` |
-| Struk belum bisa diambil | Payment belum dikonfirmasi | Minta admin menjalankan `confirm` |
+| Struk belum bisa diambil | Order belum memiliki payment lunas | Periksa apakah order berhasil dibuat dengan metode pembayaran yang valid |
 | Server tidak mau jalan | `DATABASE_URL` salah, PostgreSQL mati, atau `JWT_SECRET` < 32 byte | Baca error pertama di terminal |
 | Tidak ada respons di Postman | Server belum `cargo run`, atau port salah | Pastikan server aktif di `127.0.0.1:8080` |
 
@@ -496,9 +450,7 @@ Struk **hanya tersedia setelah payment dikonfirmasi** (lunas).
 
 ## 13. ⚠️ Yang masih perlu dicek
 
-- [ ] Nama field JSON untuk `POST /api/orders/{id}/payment` (bagian 8.1).
 - [ ] Daftar field lengkap untuk `PUT /api/orders/{id}` (bagian 7.5).
-- [ ] Apakah `confirm` mengubah status pesanan juga, dan kata apa yang dipakai.
 - [ ] Nama tabel payment di database (cek dengan `\dt` di `psql`).
 
 Sumber untuk mengecek: koleksi `postman/Restoran-API.postman_collection.json`,

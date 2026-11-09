@@ -217,29 +217,23 @@ curl -i -H "Authorization: Bearer $TOKEN" -X DELETE "$BASE_URL/api/menus/1"
 curl -i -H "Authorization: Bearer $TOKEN" -X DELETE "$BASE_URL/api/orders/1"
 ```
 
-## 8. Pembayaran dan Struk
+## 8. Pembelian, Pembayaran, dan Struk
 
-Buyer meminta pembayaran setelah membuat order. Status pembayaran tetap `pending` sampai admin memverifikasi pembayaran secara manual di luar sistem.
+Pilih metode pembayaran saat membuat order. Server menghitung total dari harga menu dan jumlah, lalu mencatat order serta payment `lunas` secara otomatis dalam satu transaksi.
 
 ```bash
-curl -i -H "Authorization: Bearer $TOKEN" -X POST "$BASE_URL/api/orders/1/payment" \
+curl -i -H "Authorization: Bearer $TOKEN" -X POST "$BASE_URL/api/orders" \
   -H "Content-Type: application/json" \
-  -d '{"method":"bank_transfer"}'
+  -d '{"customer_name":"Budi","menu_id":1,"quantity":2,"payment_method":"bank_transfer"}'
 ```
 
-Admin login dengan token admin dan mengonfirmasi `payment_id` dari response setelah verifikasi manual:
-
-```bash
-curl -i -H "Authorization: Bearer $ADMIN_TOKEN" -X POST "$BASE_URL/api/payments/1/confirm"
-```
-
-Setelah pembayaran berstatus lunas, pemilik order dapat mengambil struk:
+Response berisi order, ID payment, metode, total, dan status. Pemilik order dapat langsung mengambil struk dengan ID order dari response:
 
 ```bash
 curl -i -H "Authorization: Bearer $TOKEN" "$BASE_URL/api/orders/1/receipt"
 ```
 
-Endpoint ini belum terhubung ke payment gateway dan tidak membuktikan uang diterima. Jangan konfirmasi sebelum memverifikasi transaksi di luar sistem.
+Ini simulasi: status lunas hanya berarti pembayaran tercatat oleh aplikasi, bukan bukti uang tunai diterima atau transfer bank berhasil.
 
 ## 9. Logout
 

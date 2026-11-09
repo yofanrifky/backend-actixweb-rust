@@ -137,10 +137,8 @@ Semua alamat memakai awalan `/api`. `Ya` berarti klien perlu mengirim bearer tok
 | `GET` | `/api/orders/{id}` | Admin/pemilik | Detail pesanan. |
 | `POST` | `/api/orders` | Admin/pembeli | Membeli menu dan mengurangi stok. |
 | `PUT` / `PATCH` / `DELETE` | `/api/orders/{id}` | Admin | Mengelola pesanan. |
-| `POST` | `/api/orders/{id}/payment` | Admin/pemilik | Membuat permintaan pembayaran pending. |
-| `GET` | `/api/payments` | Admin | Daftar pembayaran untuk verifikasi. |
-| `POST` | `/api/payments/{id}/confirm` | Admin | Mengonfirmasi pembayaran manual. |
-| `GET` | `/api/orders/{id}/receipt` | Admin/pemilik | Struk setelah status paid. |
+| `GET` | `/api/payments` | Admin | Daftar pembayaran yang tercatat. |
+| `GET` | `/api/orders/{id}/receipt` | Admin/pemilik | Struk setelah payment tercatat lunas. |
 
 Untuk semua field dan contoh request/response, buka [daftar route lengkap](routes.md), bab [menu](handlers/menus.md), [pesanan](handlers/orders.md), dan [pembayaran](handlers/payments.md).
 
@@ -155,8 +153,10 @@ Menu dengan role kasir/admin:
 Pembelian:
 
 ```json
-{"customer_name":"Budi","menu_id":1,"quantity":2}
+{"customer_name":"Budi","menu_id":1,"quantity":2,"payment_method":"cash"}
 ```
+
+Pembuatan order sekaligus mencatat payment `lunas`; server menghitung total dari harga menu di database. Ini simulasi, bukan verifikasi uang atau integrasi bank/payment gateway.
 
 `POST` dan `PUT` memerlukan semua field. `PATCH` hanya memerlukan field yang ingin diubah. Teks harus berisi sesuatu setelah spasi tepinya dibuang; harga dan jumlah harus lebih besar dari nol.
 
@@ -183,7 +183,7 @@ Periksa **status dan body JSON bersama-sama**. Status menunjukkan kelompok hasil
 
 JWT HS256 memakai secret `JWT_SECRET` dan berlaku satu jam. Logout tidak mencabut token server-side; klien perlu menghapusnya, dan token tetap dapat dipakai sampai kedaluwarsa. Gunakan HTTPS dan jangan membagikan token.
 
-Password baru di-hash memakai Argon2id dan password plaintext akun lama di-upgrade saat login. Role `admin`, `kasir`, dan `pembeli` membatasi katalog, pesanan, payment, dan struk. Payment adalah verifikasi manual, bukan integrasi gateway; admin perlu memverifikasi transaksi di luar sistem sebelum konfirmasi.
+Password baru di-hash memakai Argon2id dan password plaintext akun lama di-upgrade saat login. Role `admin`, `kasir`, dan `pembeli` membatasi katalog, pesanan, payment, dan struk. Payment dicatat otomatis sebagai simulasi saat order dibuat; tidak ada konfirmasi admin atau pemeriksaan transaksi bank.
 
 ## Cara membaca contoh Rust
 

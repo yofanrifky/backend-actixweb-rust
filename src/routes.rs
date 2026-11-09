@@ -26,11 +26,6 @@ pub fn configure(config: &mut web::ServiceConfig) {
                 web::scope("/orders")
                     .wrap(from_fn(require_order_access))
                     .service(
-                        web::resource("/{id}/payment")
-                            .wrap(from_fn(require_payment_access))
-                            .route(web::post().to(payments::create_payment)),
-                    )
-                    .service(
                         web::resource("/{id}/receipt")
                             .wrap(from_fn(require_payment_access))
                             .route(web::get().to(payments::get_receipt)),
@@ -45,8 +40,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
             .service(
                 web::scope("/payments")
                     .wrap(from_fn(require_admin))
-                    .route("", web::get().to(payments::list_payments))
-                    .route("/{id}/confirm", web::post().to(payments::confirm_payment)),
+                    .route("", web::get().to(payments::list_payments)),
             )
             .service(
                 web::scope("/auth")
