@@ -15,6 +15,7 @@ Kamu tidak harus membaca semuanya sekaligus. Pilih salah satu jalur di bawah, pe
 | Baru mengenal backend | [Jalur pemula](#jalur-pemula) | Paham gambaran besar sebelum melihat detail kode. |
 | Ingin API segera jalan | [Menyalakan server](#menyalakan-server) | Server aktif dan siap menerima request lokal. |
 | Ingin mencoba API | [Latihan `curl`](akses_curl.md) | Bisa register, login, mengelola menu/pesanan, dan mencoba pembayaran. |
+| Ingin semua request siap salin | [Template Postman](template-postman.md) atau [template curl](template-curl.md) | Mencoba seluruh endpoint autentikasi, menu, pesanan, pembayaran, dan struk. |
 | Sedang membaca satu file | [Peta file](#peta-file) | Langsung masuk ke penjelasan file terkait. |
 
 ## Jalur pemula
