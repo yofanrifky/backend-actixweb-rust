@@ -8,6 +8,8 @@ File sumber: [jwt.rs](../../src/auth/jwt.rs).
 
 ## Isi token
 
+![JWT terdiri dari header, payload yang dapat dibaca, dan signature yang menjaga integritas token.](../visual/isi-jwt.svg)
+
 | Klaim | Isi | Kegunaan |
 |---|---|---|
 | `sub` | ID pengguna yang ditulis sebagai teks. | Menunjukkan akun pemilik token. |

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 520" role="img" aria-labelledby="title desc">
+  <title id="title">Siklus bearer JWT</title>
+  <desc id="desc">Login memeriksa password dan menerbitkan JWT. Klien mengirim token pada header Authorization. Middleware memeriksa token dan role database sebelum meneruskan request ke handler. Logout hanya menghapus token dari klien.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0b1220"/><stop offset="1" stop-color="#142239"/></linearGradient>
+    <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse"><path d="M28 0H0V28" fill="none" stroke="#8296b5" stroke-opacity=".1"/></pattern>
+    <clipPath id="canvas"><rect width="1120" height="520" rx="28"/></clipPath>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0L9 4.5 0 9z" fill="#8299ba"/></marker>
+    <style>
+      text{font-family:Inter,"Segoe UI",sans-serif}.eyebrow{font-size:13px;font-weight:700;letter-spacing:2px;fill:#8fa4c5}.title{font-size:26px;font-weight:750;letter-spacing:-.4px;fill:#f4f7ff}.card{fill:#121e30;stroke:#30435f;stroke-width:1.3}.blue{fill:#16243a;stroke:#405a82}.teal{fill:#142b2d;stroke:#347f75}.amber{fill:#2b241e;stroke:#926438}.rose{fill:#2b2029;stroke:#865461}.label{font-size:17px;font-weight:700;fill:#f1f5fc}.sub{font-size:13px;fill:#afbdd2}.line{fill:none;stroke:#8299ba;stroke-width:2.2}.arrow{marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="1120" height="520" rx="28" fill="url(#bg)"/><g clip-path="url(#canvas)"><rect width="1120" height="520" fill="url(#grid)" opacity=".3"/><circle cx="1060" cy="30" r="200" fill="#5071ab" opacity=".08"/></g>
+  <rect x="42" y="29" width="26" height="4" rx="2" fill="#61d2bd"/><text x="80" y="36" class="eyebrow">ALUR AUTENTIKASI</text>
+  <text x="42" y="82" class="title">JWT dibawa klien, lalu diperiksa pada setiap request</text>
+  <path d="M274 176h18M539 176h18M804 176h18" class="line arrow"/>
+  <g text-anchor="middle">
+    <rect x="42" y="121" width="230" height="110" rx="18" class="card"/><text x="157" y="158" class="label">01 · Login</text><text x="157" y="187" class="sub">password diverifikasi</text><text x="157" y="207" class="sub">hash di database</text>
+    <rect x="307" y="121" width="230" height="110" rx="18" class="teal"/><text x="422" y="158" class="label">02 · Terbitkan token</text><text x="422" y="187" class="sub">JWT HS256 · berlaku 1 jam</text><text x="422" y="207" class="sub">memuat user_id dan role</text>
+    <rect x="572" y="121" width="230" height="110" rx="18" class="blue"/><text x="687" y="158" class="label">03 · Kirim request</text><text x="687" y="187" class="sub">Authorization: Bearer …</text><text x="687" y="207" class="sub">token tidak dikirim di URL</text>
+    <rect x="837" y="121" width="230" height="110" rx="18" class="amber"/><text x="952" y="158" class="label">04 · Periksa akses</text><text x="952" y="187" class="sub">signature · expiry · role DB</text><text x="952" y="207" class="sub">sebelum handler berjalan</text>
+  </g>
+  <path d="M952 231v30H192" fill="none" stroke="#8299ba" stroke-width="2"/>
+  <path d="M192 261v28M560 261v28M928 261v28" class="line arrow"/>
+  <g text-anchor="middle">
+    <rect x="47" y="289" width="290" height="98" rx="18" class="rose"/><text x="192" y="327" font-size="17" font-weight="700" fill="#ffb7bc">401 · Token ditolak</text><text x="192" y="355" class="sub">hilang · rusak · kedaluwarsa</text><text x="192" y="374" class="sub">atau role berubah</text>
+    <rect x="415" y="289" width="290" height="98" rx="18" class="amber"/><text x="560" y="327" font-size="17" font-weight="700" fill="#f4c17b">403 · Akses ditolak</text><text x="560" y="355" class="sub">identitas valid, role tidak</text><text x="560" y="374" class="sub">diizinkan untuk endpoint</text>
+    <rect x="783" y="289" width="290" height="98" rx="18" class="teal"/><text x="928" y="327" font-size="17" font-weight="700" fill="#91e4d5">Lanjut · Handler</text><text x="928" y="355" class="sub">token valid dan aturan</text><text x="928" y="374" class="sub">akses berhasil dilewati</text>
+  </g>
+  <rect x="205" y="429" width="710" height="48" rx="15" fill="#121e30" stroke="#30435f"/><circle cx="232" cy="453" r="5" fill="#84a0c6"/><text x="560" y="458" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="600" fill="#c1cde0">Logout menghapus token dari klien; token lama tetap berlaku sampai expiry</text>
+</svg>

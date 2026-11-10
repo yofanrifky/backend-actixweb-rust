@@ -10,7 +10,7 @@ File sumber: [state.rs](../src/state.rs).
 
 `use sqlx::PgPool;` mengimpor handle pool PostgreSQL.
 
-![State menghubungkan handler dengan pool database dalam arsitektur backend.](visual/arsitektur.svg)
+![Arsitektur backend: request melewati route dan middleware JWT menuju handler, lalu state mengakses PostgreSQL.](visual/arsitektur-jwt.svg)
 
 ```rust
 use crate::auth::jwt::JwtService;

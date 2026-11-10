@@ -84,7 +84,7 @@ Handler juga menyaring kepemilikan berdasarkan ID pengguna. Jadi role `pembeli` 
 
 ## Alur yang Perlu Diingat
 
-![Diagram session lama; middleware saat ini memeriksa bearer JWT.](visual/session.svg)
+![Diagram siklus bearer JWT: login, pengiriman token, pemeriksaan signature dan role, serta hasil 401, 403, atau handler.](visual/alur-jwt.svg)
 
 ```text
 Client mengirim Authorization: Bearer <token>

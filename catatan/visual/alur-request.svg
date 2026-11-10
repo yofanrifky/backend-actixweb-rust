@@ -1,11 +1,25 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 350" role="img" aria-labelledby="title desc">
-<title id="title">Alur satu request API</title><desc id="desc">Request bergerak dari client ke Actix, diperiksa middleware, diolah handler, disimpan ke PostgreSQL, lalu response kembali ke client.</desc>
-<defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#111827"/><stop offset="1" stop-color="#172337"/></linearGradient><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5 0 10z" fill="#8da2c2"/></marker></defs>
-<rect width="1120" height="350" rx="28" fill="url(#bg)"/><text x="42" y="48" font-family="sans-serif" font-size="14" font-weight="700" letter-spacing="2" fill="#b2bfd2">PETA PERJALANAN REQUEST</text><text x="42" y="82" font-family="sans-serif" font-size="25" font-weight="700" fill="#f3f6fc">Dari client sampai data tersimpan</text>
-<g font-family="sans-serif"><rect x="42" y="130" width="150" height="116" rx="18" fill="#202c3f"/><circle cx="76" cy="164" r="17" fill="#293955"/><text x="76" y="170" text-anchor="middle" font-size="16" font-weight="700" fill="#c9d7fb">1</text><text x="65" y="204" font-size="17" font-weight="700" fill="#f3f6fc">Client</text><text x="65" y="228" font-size="13" fill="#b2bfd2">kirim HTTP</text>
-<rect x="230" y="130" width="150" height="116" rx="18" fill="#202c3f"/><circle cx="264" cy="164" r="17" fill="#293955"/><text x="264" y="170" text-anchor="middle" font-size="16" font-weight="700" fill="#c9d7fb">2</text><text x="253" y="204" font-size="17" font-weight="700" fill="#f3f6fc">Router</text><text x="253" y="228" font-size="13" fill="#b2bfd2">cocokkan URL</text>
-<rect x="418" y="130" width="150" height="116" rx="18" fill="#3a2a1b"/><circle cx="452" cy="164" r="17" fill="#5a3c1c"/><text x="452" y="170" text-anchor="middle" font-size="16" font-weight="700" fill="#ffc37d">3</text><text x="441" y="204" font-size="17" font-weight="700" fill="#f3f6fc">Middleware</text><text x="441" y="228" font-size="13" fill="#dfbd96">cek session</text>
-<rect x="606" y="130" width="150" height="116" rx="18" fill="#202c3f"/><circle cx="640" cy="164" r="17" fill="#173d3a"/><text x="640" y="170" text-anchor="middle" font-size="16" font-weight="700" fill="#77d7c6">4</text><text x="629" y="204" font-size="17" font-weight="700" fill="#f3f6fc">Handler</text><text x="629" y="228" font-size="13" fill="#b2bfd2">validasi + aturan</text>
-<rect x="794" y="130" width="150" height="116" rx="18" fill="#202c3f"/><circle cx="828" cy="164" r="17" fill="#173d3a"/><text x="828" y="170" text-anchor="middle" font-size="16" font-weight="700" fill="#77d7c6">5</text><text x="817" y="204" font-size="17" font-weight="700" fill="#f3f6fc">SQLx + DB</text><text x="817" y="228" font-size="13" fill="#b2bfd2">baca / simpan</text>
-<path d="M194 188h30m158 0h30m158 0h30m158 0h30" stroke="#8da2c2" stroke-width="3" marker-end="url(#a)"/>
-<path d="M870 258v37H120v-38" fill="none" stroke="#55c9b4" stroke-width="3" marker-end="url(#a)"/><text x="494" y="323" text-anchor="middle" font-size="14" font-family="sans-serif" font-weight="700" fill="#77d7c6">JSON response + status HTTP kembali ke client</text></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 380" role="img" aria-labelledby="title desc">
+  <title id="title">Alur satu request API</title>
+  <desc id="desc">Request bergerak dari client ke Actix, diperiksa middleware, diolah handler, disimpan ke PostgreSQL, lalu response kembali ke client.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0b1220"/><stop offset="1" stop-color="#142239"/></linearGradient>
+    <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse"><path d="M28 0H0V28" fill="none" stroke="#8296b5" stroke-opacity=".1"/></pattern>
+    <clipPath id="canvas"><rect width="1120" height="380" rx="28"/></clipPath>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0L9 4.5 0 9z" fill="#8299ba"/></marker>
+    <style>
+      text{font-family:Inter,"Segoe UI",sans-serif}.eyebrow{font-size:13px;font-weight:700;letter-spacing:2px;fill:#8fa4c5}.title{font-size:26px;font-weight:750;letter-spacing:-.4px;fill:#f4f7ff}.card{fill:#121e30;stroke:#30435f;stroke-width:1.3}.blue{fill:#16243a;stroke:#405a82}.teal{fill:#142b2d;stroke:#347f75}.amber{fill:#2b241e;stroke:#926438}.label{font-size:17px;font-weight:700;fill:#f1f5fc}.sub{font-size:13px;fill:#afbdd2}.line{fill:none;stroke:#8299ba;stroke-width:2.4;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="1120" height="380" rx="28" fill="url(#bg)"/><g clip-path="url(#canvas)"><rect width="1120" height="380" fill="url(#grid)" opacity=".3"/><circle cx="1080" cy="25" r="180" fill="#5071ab" opacity=".08"/></g>
+  <rect x="42" y="29" width="26" height="4" rx="2" fill="#61d2bd"/><text x="80" y="36" class="eyebrow">PETA PERJALANAN REQUEST</text>
+  <text x="42" y="82" class="title">Dari client sampai data tersimpan</text>
+  <path d="M223 190h27M443 190h27M663 190h27M883 190h27" class="line"/>
+  <g>
+    <rect x="38" y="132" width="185" height="116" rx="18" class="card"/><circle cx="72" cy="166" r="16" fill="#293a55"/><text x="72" y="171" text-anchor="middle" font-size="12" font-weight="700" fill="#d8e4f6">01</text><text x="62" y="208" class="label">Client</text><text x="62" y="231" class="sub">kirim HTTP</text>
+    <rect x="258" y="132" width="185" height="116" rx="18" class="blue"/><circle cx="292" cy="166" r="16" fill="#2b3e5c"/><text x="292" y="171" text-anchor="middle" font-size="12" font-weight="700" fill="#d8e4f6">02</text><text x="282" y="208" class="label">Router</text><text x="282" y="231" class="sub">cocokkan URL</text>
+    <rect x="478" y="132" width="185" height="116" rx="18" class="amber"/><circle cx="512" cy="166" r="16" fill="#503a27"/><text x="512" y="171" text-anchor="middle" font-size="12" font-weight="700" fill="#ffe0b4">03</text><text x="502" y="208" class="label">Middleware</text><text x="502" y="231" class="sub">cek bearer JWT</text>
+    <rect x="698" y="132" width="185" height="116" rx="18" class="teal"/><circle cx="732" cy="166" r="16" fill="#1e4a46"/><text x="732" y="171" text-anchor="middle" font-size="12" font-weight="700" fill="#c6f4e9">04</text><text x="722" y="208" class="label">Handler</text><text x="722" y="231" class="sub">validasi + aturan</text>
+    <rect x="918" y="132" width="164" height="116" rx="18" class="card"/><circle cx="952" cy="166" r="16" fill="#293a55"/><text x="952" y="171" text-anchor="middle" font-size="12" font-weight="700" fill="#d8e4f6">05</text><text x="942" y="208" class="label">SQLx + DB</text><text x="942" y="231" class="sub">baca / simpan</text>
+  </g>
+  <path d="M1000 249v53H130v-48" fill="none" stroke="#61cbb7" stroke-width="2.5" marker-end="url(#arrow)"/><text x="560" y="336" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#8de0d1">JSON response + status HTTP kembali ke client</text>
+</svg>

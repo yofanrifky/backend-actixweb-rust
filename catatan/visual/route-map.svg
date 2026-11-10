@@ -1,8 +1,25 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 360" role="img" aria-labelledby="title desc">
-<title id="title">Peta route API restoran</title><desc id="desc">Prefix api bercabang menjadi autentikasi, menu, dan pesanan; register login logout terbuka, profil menu dan pesanan perlu login.</desc>
-<defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#111827"/><stop offset="1" stop-color="#172337"/></linearGradient><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5 0 10z" fill="#8da2c2"/></marker></defs><rect width="1120" height="360" rx="28" fill="url(#bg)"/><text x="42" y="48" font-family="sans-serif" font-size="14" font-weight="700" letter-spacing="2" fill="#b2bfd2">PETA ENDPOINT</text><text x="42" y="82" font-family="sans-serif" font-size="25" font-weight="700" fill="#f3f6fc">Tiga kelompok route di bawah /api</text>
-<g font-family="sans-serif"><rect x="60" y="132" width="180" height="96" rx="18" fill="#304875"/><text x="150" y="171" text-anchor="middle" font-size="20" font-weight="700" fill="#202c3f">/api</text><text x="150" y="201" text-anchor="middle" font-size="13" fill="#dce5fa">prefix bersama</text>
-<rect x="365" y="118" width="300" height="94" rx="18" fill="#173d3a"/><text x="515" y="154" text-anchor="middle" font-size="18" font-weight="700" fill="#77d7c6">/auth</text><text x="515" y="183" text-anchor="middle" font-size="13" fill="#afd0c8">register · login · logout · me*</text>
-<rect x="365" y="242" width="300" height="76" rx="18" fill="#202c3f"/><text x="515" y="272" text-anchor="middle" font-size="18" font-weight="700" fill="#f3f6fc">/menus</text><text x="515" y="297" text-anchor="middle" font-size="13" fill="#b2bfd2">GET · POST · PUT · PATCH · DELETE*</text>
-<rect x="760" y="242" width="300" height="76" rx="18" fill="#202c3f"/><text x="910" y="272" text-anchor="middle" font-size="18" font-weight="700" fill="#f3f6fc">/orders</text><text x="910" y="297" text-anchor="middle" font-size="13" fill="#b2bfd2">GET · POST · PUT · PATCH · DELETE*</text>
-<path d="M242 180h70v-15h45M312 180v100h45M665 280h85" fill="none" stroke="#8da2c2" stroke-width="2.5" marker-end="url(#a)"/></g><text x="515" y="224" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#b2bfd2">* me, menus, dan orders meminta login</text><text x="560" y="343" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#b2bfd2">PUT mengganti semua field · PATCH mengganti field yang dikirim</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 450" role="img" aria-labelledby="title desc">
+  <title id="title">Peta route API restoran</title>
+  <desc id="desc">Prefix api bercabang menjadi autentikasi, menu, dan pesanan; register login logout terbuka, profil menu dan pesanan perlu login.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0b1220"/><stop offset="1" stop-color="#142239"/></linearGradient>
+    <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse"><path d="M28 0H0V28" fill="none" stroke="#8296b5" stroke-opacity=".1"/></pattern>
+    <clipPath id="canvas"><rect width="1120" height="450" rx="28"/></clipPath>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0L9 4.5 0 9z" fill="#8299ba"/></marker>
+    <style>
+      text{font-family:Inter,"Segoe UI",sans-serif}.eyebrow{font-size:13px;font-weight:700;letter-spacing:2px;fill:#8fa4c5}.title{font-size:26px;font-weight:750;letter-spacing:-.4px;fill:#f4f7ff}.card{fill:#121e30;stroke:#30435f;stroke-width:1.3}.blue{fill:#16243a;stroke:#405a82}.teal{fill:#142b2d;stroke:#347f75}.amber{fill:#2b241e;stroke:#926438}.label{font-size:18px;font-weight:700;fill:#f1f5fc}.sub{font-size:13px;fill:#afbdd2}.line{fill:none;stroke:#8299ba;stroke-width:2.3}.arrow{marker-end:url(#arrow)}.badge{font-size:10px;font-weight:700;letter-spacing:1px}
+    </style>
+  </defs>
+  <rect width="1120" height="450" rx="28" fill="url(#bg)"/><g clip-path="url(#canvas)"><rect width="1120" height="450" fill="url(#grid)" opacity=".3"/><circle cx="1080" cy="20" r="180" fill="#5071ab" opacity=".08"/></g>
+  <rect x="42" y="29" width="26" height="4" rx="2" fill="#61d2bd"/><text x="80" y="36" class="eyebrow">PETA ENDPOINT</text>
+  <text x="42" y="82" class="title">Tiga kelompok route di bawah /api</text>
+  <path d="M256 241h54M310 150v210M310 150h42M310 254h42M310 358h42" class="line"/>
+  <path d="M352 150h20M352 254h20M352 358h20" class="line arrow"/>
+  <g>
+    <rect x="62" y="200" width="194" height="82" rx="18" class="blue"/><text x="159" y="236" text-anchor="middle" class="label">/api</text><text x="159" y="261" text-anchor="middle" class="sub">prefix bersama</text>
+    <rect x="372" y="112" width="690" height="76" rx="18" class="teal"/><text x="400" y="145" class="label">/auth</text><text x="400" y="169" class="sub">register · login · logout · me*</text><rect x="935" y="132" width="98" height="28" rx="14" fill="#1d4945"/><text x="984" y="150" text-anchor="middle" class="badge" fill="#a6eee1">CAMPURAN</text>
+    <rect x="372" y="216" width="690" height="76" rx="18" class="card"/><text x="400" y="249" class="label">/menus</text><text x="400" y="273" class="sub">GET · POST · PUT · PATCH · DELETE</text><rect x="956" y="236" width="77" height="28" rx="14" fill="#263750"/><text x="994" y="254" text-anchor="middle" class="badge" fill="#c5d6f3">LOGIN</text>
+    <rect x="372" y="320" width="690" height="76" rx="18" class="card"/><text x="400" y="353" class="label">/orders</text><text x="400" y="377" class="sub">GET · POST · PUT · PATCH · DELETE</text><rect x="956" y="340" width="77" height="28" rx="14" fill="#263750"/><text x="994" y="358" text-anchor="middle" class="badge" fill="#c5d6f3">LOGIN</text>
+  </g>
+  <text x="372" y="425" class="sub">* register, login, logout terbuka; endpoint me memerlukan login.</text>
+</svg>

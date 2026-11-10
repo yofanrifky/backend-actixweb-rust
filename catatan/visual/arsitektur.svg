@@ -1,12 +1,27 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 440" role="img" aria-labelledby="title desc">
-<title id="title">Peta arsitektur backend</title><desc id="desc">Main menyiapkan aplikasi, routes mengarah ke middleware dan handler, handler menggunakan models dan state, lalu state mengakses database.</desc>
-<defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#111827"/><stop offset="1" stop-color="#172337"/></linearGradient><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5 0 10z" fill="#8da2c2"/></marker></defs><rect width="1120" height="440" rx="28" fill="url(#bg)"/>
-<text x="42" y="48" font-family="sans-serif" font-size="14" font-weight="700" letter-spacing="2" fill="#b2bfd2">PETA FILE</text><text x="42" y="82" font-family="sans-serif" font-size="25" font-weight="700" fill="#f3f6fc">Setiap modul punya satu tanggung jawab</text>
-<g font-family="sans-serif" text-anchor="middle"><rect x="450" y="110" width="220" height="66" rx="16" fill="#304875"/><text x="560" y="139" font-size="18" font-weight="700" fill="#202c3f">main.rs</text><text x="560" y="160" font-size="13" fill="#dce5fa">merangkai dan menjalankan</text>
-<rect x="110" y="222" width="220" height="72" rx="16" fill="#202c3f"/><text x="220" y="252" font-size="18" font-weight="700" fill="#f3f6fc">routes.rs</text><text x="220" y="275" font-size="13" fill="#b2bfd2">URL → handler</text>
-<rect x="450" y="222" width="220" height="72" rx="16" fill="#3a2a1b"/><text x="560" y="252" font-size="18" font-weight="700" fill="#ffc37d">auth_middleware.rs</text><text x="560" y="275" font-size="13" fill="#dfbd96">periksa session</text>
-<rect x="790" y="222" width="220" height="72" rx="16" fill="#173d3a"/><text x="900" y="252" font-size="18" font-weight="700" fill="#77d7c6">handlers/</text><text x="900" y="275" font-size="13" fill="#afd0c8">aturan tiap endpoint</text>
-<rect x="110" y="350" width="220" height="58" rx="15" fill="#202c3f"/><text x="220" y="376" font-size="16" font-weight="700" fill="#f3f6fc">models.rs</text><text x="220" y="396" font-size="12" fill="#b2bfd2">bentuk data</text>
-<rect x="450" y="350" width="220" height="58" rx="15" fill="#202c3f"/><text x="560" y="376" font-size="16" font-weight="700" fill="#f3f6fc">state.rs</text><text x="560" y="396" font-size="12" fill="#b2bfd2">pool koneksi</text>
-<rect x="790" y="350" width="220" height="58" rx="15" fill="#304875"/><text x="900" y="376" font-size="16" font-weight="700" fill="#202c3f">PostgreSQL</text><text x="900" y="396" font-size="12" fill="#dce5fa">tabel dan data</text>
-<path d="M500 178L250 218M560 178v40M620 178l250 40M220 296v48M330 260h115M670 260h115M900 296v48M670 379h115" fill="none" stroke="#8da2c2" stroke-width="2.5" marker-end="url(#a)"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 460" role="img" aria-labelledby="title desc">
+  <title id="title">Peta arsitektur backend</title>
+  <desc id="desc">Main menyiapkan aplikasi, routes mengarahkan request melalui middleware ke handler. Handler menggunakan models dan state, lalu state mengakses database.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0b1220"/><stop offset="1" stop-color="#142239"/></linearGradient>
+    <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse"><path d="M28 0H0V28" fill="none" stroke="#8296b5" stroke-opacity=".1"/></pattern>
+    <clipPath id="canvas"><rect width="1120" height="460" rx="28"/></clipPath>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0L9 4.5 0 9z" fill="#8299ba"/></marker>
+    <style>
+      text{font-family:Inter,"Segoe UI",sans-serif}.eyebrow{font-size:13px;font-weight:700;letter-spacing:2px;fill:#8fa4c5}.title{font-size:26px;font-weight:750;letter-spacing:-.4px;fill:#f4f7ff}.card{fill:#121e30;stroke:#30435f;stroke-width:1.3}.blue{fill:#16243a;stroke:#405a82}.teal{fill:#142b2d;stroke:#347f75}.amber{fill:#2b241e;stroke:#926438}.label{font-size:17px;font-weight:700;fill:#f1f5fc}.sub{font-size:13px;fill:#afbdd2}.line{fill:none;stroke:#8299ba;stroke-width:2.2;marker-end:url(#arrow)}.branch{fill:none;stroke:#8299ba;stroke-width:2.2}
+    </style>
+  </defs>
+  <rect width="1120" height="460" rx="28" fill="url(#bg)"/><g clip-path="url(#canvas)"><rect width="1120" height="460" fill="url(#grid)" opacity=".3"/><circle cx="1080" cy="20" r="180" fill="#5071ab" opacity=".08"/></g>
+  <rect x="42" y="29" width="26" height="4" rx="2" fill="#61d2bd"/><text x="80" y="36" class="eyebrow">PETA FILE</text>
+  <text x="42" y="82" class="title">Setiap modul punya satu tanggung jawab</text>
+  <path d="M500 176L186 222M560 176v46M620 176l314 46M934 304v24H320" class="branch"/>
+  <path d="M296 265h148M670 265h148M320 328v20M560 328v20M670 389h148" class="line"/>
+  <g text-anchor="middle">
+    <rect x="440" y="108" width="240" height="68" rx="18" class="blue"/><text x="560" y="138" class="label">main.rs</text><text x="560" y="160" class="sub">merangkai dan menjalankan</text>
+    <rect x="76" y="226" width="220" height="78" rx="18" class="card"/><text x="186" y="258" class="label">routes.rs</text><text x="186" y="282" class="sub">URL → handler</text>
+    <rect x="450" y="226" width="220" height="78" rx="18" class="amber"/><text x="560" y="258" class="label" font-size="15">auth_middleware.rs</text><text x="560" y="282" class="sub">periksa session</text>
+    <rect x="824" y="226" width="220" height="78" rx="18" class="teal"/><text x="934" y="258" class="label">handlers/</text><text x="934" y="282" class="sub">aturan tiap endpoint</text>
+    <rect x="210" y="348" width="220" height="74" rx="17" class="card"/><text x="320" y="378" class="label" font-size="16">models.rs</text><text x="320" y="402" class="sub" font-size="12">bentuk data</text>
+    <rect x="450" y="348" width="220" height="74" rx="17" class="card"/><text x="560" y="378" class="label" font-size="16">state.rs</text><text x="560" y="402" class="sub" font-size="12">pool koneksi</text>
+    <rect x="824" y="348" width="220" height="74" rx="17" class="blue"/><text x="934" y="378" class="label" font-size="16">PostgreSQL</text><text x="934" y="402" class="sub" font-size="12">tabel dan data</text>
+  </g>
+</svg>

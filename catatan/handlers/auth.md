@@ -17,7 +17,7 @@ File sumber: [auth.rs](../../src/handlers/auth.rs).
 
 ### Siklus token
 
-![Diagram session lama; alur autentikasi saat ini menggunakan bearer JWT.](../visual/session.svg)
+![Diagram siklus bearer JWT dari login hingga token dihapus oleh klien saat logout.](../visual/alur-jwt.svg)
 
 ```text
 POST /login → server memeriksa password → server menerbitkan JWT

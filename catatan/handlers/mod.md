@@ -8,7 +8,7 @@ File sumber: [mod.rs](../../src/handlers/mod.rs).
 
 File ini mendaftarkan modul handler yang tersedia. Isinya deklarasi modul, bukan implementasi endpoint:
 
-![Peta letak modul utama: router mengarahkan request ke handler, handler memakai model dan state.](../visual/arsitektur.svg)
+![Peta modul utama: router, middleware bearer JWT, handler, model, state, dan PostgreSQL.](../visual/arsitektur-jwt.svg)
 
 ```rust
 pub mod menus;
