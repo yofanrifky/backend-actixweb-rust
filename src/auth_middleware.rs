@@ -120,7 +120,7 @@ async fn authenticate(
 }
 
 fn is_order_detail_path(path: &str) -> bool {
-    path.strip_prefix("/api/orders/")
+    path.strip_prefix("/api/orders/")   
         .is_some_and(|id| !id.is_empty() && id.bytes().all(|byte| byte.is_ascii_digit()))
 }
 
