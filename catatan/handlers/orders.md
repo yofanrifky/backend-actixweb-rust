@@ -13,6 +13,7 @@ File sumber: [orders.rs](../../src/handlers/orders.rs).
 - [Daftar dan filter pesanan](#get_orders)
 - [Baca satu pesanan](#get_order)
 - [Buat pesanan](#create_order)
+- [Memulai dan mengelola transaksi SQLx](#memulai-dan-mengelola-transaksi-sqlx)
 - [Ganti semua field](#update_order)
 - [Ubah sebagian field](#patch_order)
 - [Hapus pesanan](#delete_order)
@@ -72,6 +73,209 @@ Menangani `GET /api/orders/{id}`. Mengikat ID ke `$1` dan mencari dengan `fetch_
 ## `create_order`
 
 Menangani `POST /api/orders`. Input memakai `customer_name`, `menu_id`, `quantity`, dan `payment_method`; klien tidak menentukan harga atau status. Metode hanya `cash` atau `bank_transfer`. Dalam satu transaksi, handler mengurangi stok bila cukup, mengambil harga/nama menu dari database, menyimpan order berstatus `lunas` beserta snapshot harga, dan membuat payment lunas dengan `paid_at`. Total dihitung dari harga snapshot dikali jumlah. Jika stok kurang atau salah satu query gagal, seluruh transaksi dibatalkan. Response berisi data order dan object `payment` dengan ID, metode, status, total, dan mata uang.
+
+## Memulai dan Mengelola Transaksi SQLx
+
+### Membaca `begin()` dan `match`
+
+Berikut pola yang digunakan handler untuk memulai transaksi:
+
+```rust
+let mut transaction = match state.db.begin().await {
+	Ok(transaction) => transaction,
+	Err(error) => return database_error("Gagal memulai pembelian", error),
+};
+```
+
+Arti bagian-bagian pentingnya:
+
+| Bagian | Arti |
+|---|---|
+| `let` | Mendeklarasikan binding, yaitu nama lokal untuk menyimpan nilai. |
+| `mut` | Mengizinkan nilai melalui binding ini dipinjam secara mutable atau diubah jika tipenya mendukungnya. |
+| `transaction` | Nama variabel yang menyimpan objek transaksi SQLx setelah transaksi berhasil dimulai. |
+| `state.db` | Pool database yang disimpan di `AppState`; pada handler ini pool tersebut dipakai sebagai sumber koneksi. |
+| `.begin()` | Meminta SQLx memulai transaksi pada koneksi database. Untuk pool, proses ini juga memperoleh koneksi yang akan dipakai transaksi. |
+| `.await` | Menunggu operasi asynchronous selesai tanpa memblokir thread secara sinkron. Hasilnya baru tersedia sesudah future selesai. |
+| `match` | Memeriksa nilai enum dan menjalankan cabang sesuai variannya. |
+| `Ok(transaction)` | Operasi berhasil. Nilai transaksi di dalam `Ok` dipindahkan ke binding `transaction` di luar. |
+| `Err(error)` | Operasi gagal. Nilai error diikat ke nama `error` untuk diteruskan ke penanganan error. |
+| `return` | Mengakhiri fungsi handler saat itu juga dan mengirim response error; query pembelian selanjutnya tidak dijalankan. |
+
+Pemanggilan `begin().await` menghasilkan `Result` karena operasi database dapat sukses atau gagal. Secara konseptual, tipenya adalah `Result<Transaction, sqlx::Error>`; tipe transaksi lengkapnya bergantung pada database dan pool yang dipakai. `Result` memiliki dua kemungkinan: `Ok(nilai)` atau `Err(error)`. `match` memastikan keduanya ditangani. Jika koneksi tidak bisa diperoleh atau transaksi tidak berhasil dimulai, cabang `Err` mengirim response server dan tidak ada operasi pembelian yang diteruskan.
+
+### Mengapa `transaction` Mutable?
+
+`mut` pada binding Rust mengizinkan peminjaman mutable melalui binding tersebut. Ini bukan instruksi untuk langsung mengubah data database. Perubahan data baru diminta ketika query seperti `UPDATE` atau `INSERT` dijalankan; keberhasilan query di dalam transaksi pun belum membuatnya permanen sebelum `commit`.
+
+Contoh sederhana perbedaan binding immutable dan mutable:
+
+```rust
+let jumlah = 1;
+// jumlah = 2; // Tidak bisa: binding tidak mutable.
+
+let mut stok = 5;
+stok -= 1; // Bisa: binding stok mutable.
+```
+
+Pada transaksi, yang penting adalah peminjaman mutable. Query SQLx untuk PostgreSQL menerima koneksi yang dapat dipakai secara mutable. Bentuk `&mut *transaction` berarti: dereferensikan objek transaksi hingga koneksi dasarnya, lalu pinjam koneksi itu sebagai `&mut`. Operasi query menggunakan peminjaman tersebut, sehingga binding transaksi perlu dideklarasikan `mut`.
+
+```rust
+let mut transaction = state.db.begin().await?;
+
+sqlx::query("UPDATE menu SET stok = stok - 1 WHERE id = $1")
+	.bind(1_i32)
+	.execute(&mut *transaction)
+	.await?;
+```
+
+`&mut` adalah referensi mutable eksklusif: selama peminjaman berlangsung, bagian lain kode tidak dapat memakai koneksi yang sama secara bersamaan melalui referensi lain yang bertentangan. Setiap query selesai menunggu sebelum peminjaman berikutnya dipakai. `mut transaction` menyiapkan binding untuk peminjaman tersebut; ia tidak dengan sendirinya mengirim query, memulai transaksi baru, ataupun meng-commit data.
+
+### Apa yang Terjadi Saat `begin().await`?
+
+Urutan berikut menjelaskan perilaku yang dapat diandalkan tanpa mengasumsikan detail protokol internal SQLx:
+
+1. Aplikasi memanggil `begin()` pada pool database melalui `state.db`.
+2. Jika `state.db` adalah `PgPool`, SQLx memperoleh satu koneksi dari pool. Koneksi yang sedang dipakai aplikasi lain tidak dipakai bersamaan untuk transaksi ini.
+3. Koneksi tersebut dipinjam untuk menjalankan transaksi. Pool tidak boleh menggunakannya sebagai koneksi bebas untuk operasi lain sampai transaksi selesai dan koneksi dikembalikan.
+4. SQLx melalui driver PostgreSQL meminta database memulai transaksi pada koneksi tersebut. Efeknya setara dengan perintah SQL `BEGIN`; detail komunikasi/protokol yang persis merupakan urusan implementasi SQLx dan driver.
+5. PostgreSQL menandai transaction context pada koneksi itu. Query berikutnya pada koneksi yang sama menjadi bagian transaksi tersebut.
+6. Jika berhasil, SQLx mengembalikan objek `Transaction` yang mewakili transaksi dan mengelola koneksinya.
+7. Jika memperoleh koneksi atau memulai transaksi gagal, pemanggilan menghasilkan `Err`. Handler dapat mencatat error dan mengirim response tanpa menjalankan query pembelian.
+
+Di PostgreSQL, `BEGIN` memulai blok transaksi eksplisit pada koneksi. Pada titik ini belum ada stok yang dikurangi atau baris pembelian yang ditambahkan karena belum ada query perubahan data yang dijalankan. Transaksi memiliki konteks untuk mengelompokkan query berikutnya; detail seperti snapshot pembacaan mengikuti isolation level dan query yang berjalan.
+
+Koneksi harus sama untuk seluruh query karena status transaksi melekat pada koneksi tersebut. Jika query pertama dijalankan pada satu koneksi dan query berikutnya melalui pool secara terpisah, query kedua bisa mendapatkan koneksi lain dan berada di luar transaksi pertama. Itulah sebabnya query dalam contoh menggunakan `&mut *transaction`, bukan `&state.db`.
+
+SQLx memastikan pemanggilan `begin()` menghasilkan objek transaksi atau error. Uraian bahwa pool memperoleh koneksi lalu driver memulai transaksi menjelaskan perilaku yang terlihat dari API. Ini bukan klaim tentang urutan pesan internal, optimasi driver, atau mekanisme wire protocol tertentu.
+
+### Contoh Pembelian: Tiga Operasi dalam Satu Transaksi
+
+Misalkan kondisi awal database adalah stok menu 1 sebanyak 5, belum ada pembelian baru, dan belum ada detail pembelian baru. Sistem menjalankan:
+
+```sql
+UPDATE menu
+SET stok = stok - 1
+WHERE id = 1;
+
+INSERT INTO pembelian (user_id, total)
+VALUES (10, 15000);
+
+INSERT INTO detail_pembelian (pembelian_id, menu_id, jumlah)
+VALUES (1, 1, 1);
+```
+
+Tabel berikut menunjukkan perubahan dari sudut pandang transaksi. Kolom “data committed” menegaskan bahwa perubahan di tengah transaksi belum permanen; pembaca lain umumnya tetap melihat keadaan committed sebelumnya.
+
+| Tahap | Stok menu 1 yang terlihat di transaksi | Baris pembelian baru | Baris detail baru | Status perubahan |
+|---|---:|---|---|---|
+| Sebelum transaksi | 5 | Belum ada | Belum ada | Data awal sudah committed. |
+| `BEGIN`, lalu proses 1 berhasil | 4 | Belum ada | Belum ada | Pengurangan stok belum committed. |
+| Proses 2 berhasil | 4 | Ada: user 10, total 15000 | Belum ada | Kedua query sukses, tetapi belum committed. |
+| Proses 3 gagal | 4 | Ada di dalam transaksi | Tidak berhasil ditambahkan | Perubahan proses 1 dan 2 masih dapat di-rollback. |
+| Setelah `ROLLBACK` | 5 | Belum ada | Belum ada | Semua perubahan transaksi dibatalkan; kembali ke keadaan awal. |
+
+Query yang sukses berarti database berhasil menjalankan query di dalam transaksi. Itu berbeda dari `COMMIT`: sebelum commit, perubahan masih bagian dari transaksi yang dapat dibatalkan. Jika proses 3 gagal, aplikasi mendeteksi `Err`, lalu menjalankan rollback. PostgreSQL membatalkan perubahan proses 1 dan 2 yang belum committed sehingga stok dan data pembelian kembali ke keadaan sebelum transaksi.
+
+```mermaid
+flowchart TD
+	A[BEGIN] --> B[Proses 1: kurangi stok]
+	B --> C[Proses 2: simpan pembelian]
+	C --> D{Proses 3 berhasil?}
+	D -->|Ya| E[COMMIT]
+	D -->|Tidak| F[ROLLBACK]
+```
+
+### `COMMIT` dan `ROLLBACK`
+
+```rust
+transaction.commit().await?;
+```
+
+`commit()` meminta database mengakhiri transaksi dengan menyimpan seluruh perubahan yang dilakukan dalam transaksi itu sebagai perubahan committed. Jika semua operasi bisnis berhasil, commit adalah langkah yang membuat hasil pembelian permanen. Method ini asynchronous, sehingga `.await` menunggu hasilnya; `?` meneruskan error kepada pemanggil jika fungsi memiliki return type `Result`.
+
+```rust
+transaction.rollback().await?;
+```
+
+`rollback()` meminta database membatalkan seluruh perubahan yang belum committed di transaksi tersebut. Gunakan saat validasi lanjutan atau query gagal sehingga operasi yang sudah sempat berhasil tidak tertinggal sebagian. Setelah commit atau rollback, transaksi berakhir dan koneksi dapat dikembalikan untuk penggunaan pool.
+
+| Perintah | Dipakai ketika | Pengaruh pada query sebelumnya |
+|---|---|---|
+| `COMMIT` | Semua langkah transaksi berhasil dan konsisten. | Semua perubahan transaksi menjadi committed. |
+| `ROLLBACK` | Ada langkah gagal atau keputusan untuk membatalkan operasi. | Semua perubahan transaksi yang belum committed dibatalkan. |
+
+```mermaid
+flowchart LR
+	A[BEGIN] --> B[QUERY 1] --> C[QUERY 2] --> D[QUERY 3] --> E[COMMIT]
+```
+
+```mermaid
+flowchart LR
+	A[BEGIN] --> B[QUERY 1] --> C[QUERY 2] --> D[QUERY 3 gagal] --> E[ROLLBACK]
+```
+
+### Implementasi SQLx
+
+Contoh berikut menganggap pool bertipe `PgPool` dan menggunakan ID contoh dari ilustrasi. Fungsi mengembalikan error SQLx; handler Actix dapat menerjemahkan error itu menjadi response dengan `database_error`.
+
+```rust
+use sqlx::PgPool;
+
+async fn proses_pembelian(pool: &PgPool) -> Result<(), sqlx::Error> {
+	let mut transaction = match pool.begin().await {
+		Ok(transaction) => transaction,
+		Err(error) => return Err(error),
+	};
+
+	let hasil_query = async {
+		sqlx::query("UPDATE menu SET stok = stok - 1 WHERE id = $1")
+			.bind(1_i32)
+			.execute(&mut *transaction)
+			.await?;
+
+		sqlx::query("INSERT INTO pembelian (user_id, total) VALUES ($1, $2)")
+			.bind(10_i32)
+			.bind(15_000_i32)
+			.execute(&mut *transaction)
+			.await?;
+
+		sqlx::query(
+			"INSERT INTO detail_pembelian (pembelian_id, menu_id, jumlah) VALUES ($1, $2, $3)",
+		)
+		.bind(1_i32)
+		.bind(1_i32)
+		.bind(1_i32)
+		.execute(&mut *transaction)
+		.await?;
+
+		Ok::<(), sqlx::Error>(())
+	}
+	.await;
+
+	match hasil_query {
+		Ok(()) => transaction.commit().await,
+		Err(error) => {
+			if let Err(rollback_error) = transaction.rollback().await {
+				eprintln!("Gagal melakukan rollback: {rollback_error}");
+			}
+			Err(error)
+		}
+	}
+}
+```
+
+Setiap `execute(&mut *transaction)` menjalankan query melalui koneksi yang dipinjam untuk transaksi yang sama. `&mut *transaction` memperoleh referensi mutable ke koneksi di dalam objek transaksi; tanpa itu, query tidak secara eksplisit menggunakan koneksi transaksi tersebut. Memanggil query langsung dengan `&pool` dapat mengambil koneksi lain, sehingga query tidak lagi dijamin menjadi bagian transaksi ini.
+
+Blok `async` mengumpulkan tiga hasil query menjadi satu hasil operasi: error query pertama yang gagal menghentikan blok melalui `?`. Sesudah blok selesai, `match` menjalankan commit jika semuanya sukses atau rollback jika ada error. Jika rollback juga gagal, contoh mencatat error rollback tetapi tetap mengembalikan error query awal sebagai penyebab utama kegagalan operasi. Pada aplikasi nyata, ID pembelian biasanya diperoleh dari hasil `INSERT ... RETURNING id` lalu dipakai untuk detail; query pengurangan stok juga perlu memastikan stok cukup dan memeriksa jumlah row yang berubah. Hal-hal itu adalah validasi bisnis tambahan, bukan bagian dari penjelasan dasar transaksi.
+
+### Jika Transaksi Ditinggalkan dan Hubungannya dengan ACID
+
+Jika objek `Transaction` SQLx dijatuhkan tanpa `commit()` atau `rollback()`, transaksi tidak dianggap berhasil dan perubahan tidak boleh diasumsikan committed. Implementasi `Drop` pada transaksi memberi tahu transaction manager koneksi bahwa transaksi perlu di-rollback; ini adalah cleanup otomatis agar transaksi yang ditinggalkan tidak diperlakukan sebagai transaksi sukses. Karena `Drop` berjalan sinkron, kode pemanggil tidak dapat melakukan `.await` pada cleanup itu atau menerima hasil rollback-nya. Karena itu, aplikasi sebaiknya memanggil `rollback().await` secara eksplisit saat mengetahui operasi gagal agar penyelesaian dan kemungkinan error rollback dapat ditangani dengan jelas. Jangan mengandalkan `Drop` sebagai pengganti alur error yang eksplisit.
+
+Transaksi mengelompokkan beberapa query agar sistem tidak menyimpan keadaan setengah jadi. Ini terutama terkait prinsip **Atomicity** pada ACID: kumpulan perubahan diperlakukan sebagai satu unit, yaitu semuanya committed atau perubahan yang belum committed dibatalkan. Konsistensi data juga terbantu karena aturan bisnis dapat dijaga melintasi beberapa tabel, tetapi transaksi sendiri tidak otomatis menjamin setiap aturan benar; query, constraint, dan validasi tetap harus tepat.
+
+Transaksi jangan dibiarkan terbuka terlalu lama. Selama koneksi dipinjam, kapasitas pool berkurang; query yang menulis dapat menahan lock; dan transaksi panjang dapat mengganggu pekerjaan lain serta mempertahankan keadaan database lebih lama dari perlu. Lakukan validasi yang tidak membutuhkan transaksi sebelum `begin()`, jalankan query yang dibutuhkan, lalu segera commit atau rollback.
 
 ## `update_order`
 
